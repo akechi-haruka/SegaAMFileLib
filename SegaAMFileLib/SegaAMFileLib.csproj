@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <Title>Sega AM File Library</Title>
+        <Description>Allows reading and writing of common file formats used by Sega's Arcade systems</Description>
+        <Copyright>2025 Akechi Haruka</Copyright>
+        <Company>Haruka Akechi</Company>
+        <AssemblyVersion>0.1</AssemblyVersion>
+        <RootNamespace>Haruka.Arcade.SegaAMFileLib</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+      <PackageReference Include="NReco.Logging.File" Version="1.2.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="segaamfilelib.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="segaamfilelib.debug.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
