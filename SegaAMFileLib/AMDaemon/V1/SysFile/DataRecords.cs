@@ -13,7 +13,7 @@ public unsafe struct DataRecordCredit {
     public uint crc;
     public uint uuid;
     public CreditConfig creditConfig;
-    public fixed byte padding[472];
+    private fixed byte padding[472];
 }
 
 public enum CreditShareType : byte {
@@ -37,9 +37,9 @@ public unsafe struct CreditConfig {
     public byte bonusAdder;
     public byte creditRate;
     public fixed byte cost[8];
-    public fixed byte reserved[1];
+    private fixed byte reserved[1];
     public ushort coinAmount;
-    public fixed byte padding[14];
+    private fixed byte padding[14];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -47,17 +47,17 @@ public unsafe struct DataRecordNetwork {
     public uint crc;
     public uint uuid;
     public NetworkConfig networkConfig;
-    public fixed byte padding[376];
+    private fixed byte padding[376];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct NetworkConfig {
-    uint flag;
-    uint ipAddress;
-    uint subnetMask;
-    uint gateway;
-    uint primaryDns;
-    uint secondaryDns;
+    public uint flag;
+    public uint ipAddress;
+    public uint subnetMask;
+    public uint gateway;
+    public uint primaryDns;
+    public uint secondaryDns;
     fixed byte padding[104];
 }
 
@@ -67,7 +67,7 @@ public unsafe struct DataRecordBackup {
     public uint uuid;
     public CreditData creditData;
     public Bookkeeping bookkeeping;
-    public fixed byte padding[296];
+    private fixed byte padding[296];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -75,7 +75,7 @@ public unsafe struct CreditData {
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
     public CreditDataPlayer[] player;
 
-    public fixed byte padding[48];
+    private fixed byte padding[48];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -87,7 +87,7 @@ public unsafe struct CreditDataPlayer {
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct Bookkeeping {
     public fixed uint coinChute[8];
-    public fixed byte padding[88];
+    private fixed byte padding[88];
     public uint emoneyCoin;
     public uint emoneyCredit;
     public uint totalCoin;
@@ -103,7 +103,7 @@ public unsafe struct DataRecordErrorLog {
     public byte writePointer;
     public byte logNum;
     public byte activeLastError;
-    public fixed byte padding[21];
+    private fixed byte padding[21];
 
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 15)]
     public ErrorBody[] body;
@@ -115,14 +115,14 @@ public unsafe struct ErrorBody {
     public fixed byte gameId[4];
     public ushort error;
     public byte appStartCount;
-    public fixed byte reserved[1];
+    private fixed byte reserved[1];
     public ushort subError;
-    public fixed byte padding[14];
+    private fixed byte padding[14];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct DataRecordTimezone {
-    public fixed byte padding[0x0200];
+    private fixed byte padding[0x0200];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -133,7 +133,7 @@ public unsafe struct DataRecordLocalize {
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 8)]
     public String unk;
 
-    public fixed byte padding[496];
+    private fixed byte padding[496];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -142,7 +142,7 @@ public unsafe struct DataRecordWlan {
     public uint uuid;
     public uint unk;
     public uint unk2;
-    public fixed byte padding[496];
+    private fixed byte padding[496];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -150,7 +150,7 @@ public unsafe struct DataRecordDisplay {
     public uint crc;
     public uint uuid;
     public uint unk;
-    public fixed byte padding[500];
+    private fixed byte padding[500];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -158,7 +158,7 @@ public unsafe struct DataRecordAime {
     public uint crc;
     public uint uuid;
     public UpdateProgress updateProgress;
-    public fixed byte padding[500];
+    private fixed byte padding[500];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -166,7 +166,7 @@ public unsafe struct UpdateProgress {
     public byte comPort;
     public byte unitIndex;
     public byte busy;
-    public fixed byte padding[1];
+    private fixed byte padding[1];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -189,7 +189,7 @@ public unsafe struct DataRecordEmoney {
     public SendCounterLog sendCounterLog;
     public uint authBrandList;
     public CurrentDealInfo currentDealInfo;
-    public fixed byte padding[48];
+    private fixed byte padding[48];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -229,7 +229,7 @@ public unsafe struct Timestamp {
     public byte hour;
     public byte minute;
     public byte second;
-    public fixed byte padding[1];
+    private fixed byte padding[1];
 }
 
 public enum EMoneyBrand : byte {
@@ -274,7 +274,7 @@ public unsafe struct CurrentDealInfo {
     public uint price;
     public uint quantity;
     public byte state;
-    public fixed byte padding[3];
+    private fixed byte padding[3];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -291,7 +291,7 @@ public unsafe struct AdditionalBody {
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 8)]
     public String itemId;
 
-    public fixed byte padding[5];
+    private fixed byte padding[5];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -299,14 +299,14 @@ public unsafe struct DataRecordDipsw {
     public uint crc;
     public uint uuid;
     public byte value;
-    public fixed byte padding[503];
+    private fixed byte padding[503];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct DataRecordCreditClear {
     public uint crc;
     public uint uuid;
-    public fixed byte padding[504];
+    private fixed byte padding[504];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -314,10 +314,10 @@ public unsafe struct DataRecordAimePay {
     public uint crc;
     public uint uuid;
     public ActivationInfo activationInfo;
-    public fixed byte reserved2[8];
+    private fixed byte reserved2[8];
     public DealLogAimePay dealLog;
     public CurrentDealInfoAimePay currentDealInfo;
-    public fixed byte padding[384];
+    private fixed byte padding[384];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
@@ -334,14 +334,14 @@ public unsafe struct ActivationInfo {
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 121)]
     public String companyName;
 
-    public fixed byte padding[4];
+    private fixed byte padding[4];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct DealLogAimePay {
     public ushort total;
     public ushort addPoint;
-    public fixed byte padding[4];
+    private fixed byte padding[4];
 
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
     public DealLogBodyAimePay[] body;
@@ -351,7 +351,7 @@ public unsafe struct DealLogAimePay {
 public unsafe struct DealLogBodyAimePay {
     public byte state;
     public byte status;
-    public fixed byte reserved[2];
+    private fixed byte reserved[2];
     public uint errorCategory;
 
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
@@ -360,7 +360,7 @@ public unsafe struct DealLogBodyAimePay {
     public Timestamp time;
     public fixed byte accessCode[10];
     public fixed byte itemId[8];
-    public fixed byte reserved2[6];
+    private fixed byte reserved2[6];
     public ulong receiptId;
     public uint quantity;
     public uint amount;
@@ -369,11 +369,11 @@ public unsafe struct DealLogBodyAimePay {
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct CurrentDealInfoAimePay {
     public fixed byte accessCode[10];
-    public fixed byte reserved[6];
+    private fixed byte reserved[6];
     public fixed byte itemId[8];
     public Timestamp time;
     public uint amount;
     public uint quantity;
     public byte state;
-    public fixed byte padding[7];
+    private fixed byte padding[7];
 }

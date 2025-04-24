@@ -26,8 +26,7 @@ public class SysDataTest {
 
     [Test]
     public void T02_Read() {
-        SysData data = new SysData(File.ReadAllBytes("G:\\SDVX\\fgo1151\\amfs\\sysfile.dat"));
-        var x = 1;
+        SysData data = new SysData(File.ReadAllBytes("G:\\SDVX\\fatego10\\amfs\\sysfile.dat"));
     }
     
 }
