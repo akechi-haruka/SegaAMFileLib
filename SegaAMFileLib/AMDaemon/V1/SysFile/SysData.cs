@@ -95,7 +95,6 @@ public class SysData {
 
         if (record.HasCrc) {
             byte[] crcableData = new byte[record.Size - 4];
-            ;
             Array.Copy(data, record.StartAddress + 4, crcableData, 0, record.Size - 4);
             uint calculated = SegaCrc32.CalcCrc32(crcableData);
             uint stored = BitConverter.ToUInt32(struc, 0);

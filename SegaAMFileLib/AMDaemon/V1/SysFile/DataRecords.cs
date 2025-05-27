@@ -221,29 +221,6 @@ public unsafe struct DealLogBody {
     public uint quantity;
 }
 
-[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
-public unsafe struct Timestamp {
-    public ushort year;
-    public byte month;
-    public byte day;
-    public byte hour;
-    public byte minute;
-    public byte second;
-    private fixed byte padding[1];
-
-    public static Timestamp Now() {
-        DateTime now = DateTime.Now;
-        return new Timestamp() {
-            year = (ushort)now.Year,
-            month = (byte)now.Month,
-            day = (byte)now.Day,
-            hour = (byte)now.Hour,
-            minute = (byte)now.Minute,
-            second = (byte)now.Second
-        };
-    }
-}
-
 public enum EMoneyBrand : byte {
     BRAND_UNKNOWN = 0x0,
     BRAND_NANACO = 0x1,
