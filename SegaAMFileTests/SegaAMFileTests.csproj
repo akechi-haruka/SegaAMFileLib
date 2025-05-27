@@ -25,4 +25,10 @@
       <ProjectReference Include="..\SegaAMFileLib\SegaAMFileLib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="TestFiles\sysfile.dat">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

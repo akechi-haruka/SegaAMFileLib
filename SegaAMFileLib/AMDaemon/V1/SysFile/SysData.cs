@@ -45,20 +45,20 @@ public class SysData {
         new BackupRecordDefinition(typeof(DataRecordAimePay), 0x5C00, 0x0400, true, true, 0x2D2D2D2D),
     };
 
-    public DataRecordAime Aime { get; }
-    public DataRecordAimePay AimePay { get; }
-    public DataRecordBackup Backup { get; }
-    public DataRecordCredit Credit { get; }
-    public DataRecordCreditClear CreditClear { get; }
-    public DataRecordDipsw Dipsw { get; }
-    public DataRecordDisplay Display { get; }
-    public DataRecordEmoney Emoney { get; }
-    public DataRecordErrorLog ErrorLog { get; }
-    public DataRecordLocalize Localize { get; }
-    public DataRecordNetwork Network0 { get; }
-    public DataRecordNetwork Network1 { get; }
-    public DataRecordTimezone Timezone { get; }
-    public DataRecordWlan Wlan { get; }
+    public DataRecordAime Aime;
+    public DataRecordAimePay AimePay;
+    public DataRecordBackup Backup;
+    public DataRecordCredit Credit;
+    public DataRecordCreditClear CreditClear;
+    public DataRecordDipsw Dipsw;
+    public DataRecordDisplay Display;
+    public DataRecordEmoney Emoney;
+    public DataRecordErrorLog ErrorLog;
+    public DataRecordLocalize Localize;
+    public DataRecordNetwork Network0;
+    public DataRecordNetwork Network1;
+    public DataRecordTimezone Timezone;
+    public DataRecordWlan Wlan;
 
     public SysData(byte[] data) {
         if (data.Length != FILE_LENGTH) {
@@ -159,11 +159,14 @@ public class SysData {
         }
 
         if (record.HasCrc) {
-            byte[] crc = BitConverter.GetBytes((uint)0);
+            byte[] crcableBytes = new byte[struc.Length - 4];
+            Array.Copy(struc, OFFSET_CRC + sizeof(uint), crcableBytes, 0, struc.Length - sizeof(uint));
+            
+            uint crcnum = SegaCrc32.CalcCrc32(crcableBytes);
+            byte[] crc = BitConverter.GetBytes(crcnum);
+            
             Array.Copy(crc, 0, struc, OFFSET_CRC, crc.Length);
-            uint crcnum = SegaCrc32.CalcCrc32(struc);
-            crc = BitConverter.GetBytes(crcnum);
-            Array.Copy(crc, 0, struc, OFFSET_CRC, crc.Length);
+            
             LOG.LogDebug("New CRC for " + struc + ": 0x" + crcnum.ToString("X2"));
         }
 

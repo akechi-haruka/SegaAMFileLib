@@ -230,6 +230,18 @@ public unsafe struct Timestamp {
     public byte minute;
     public byte second;
     private fixed byte padding[1];
+
+    public static Timestamp Now() {
+        DateTime now = DateTime.Now;
+        return new Timestamp() {
+            year = (ushort)now.Year,
+            month = (byte)now.Month,
+            day = (byte)now.Day,
+            hour = (byte)now.Hour,
+            minute = (byte)now.Minute,
+            second = (byte)now.Second
+        };
+    }
 }
 
 public enum EMoneyBrand : byte {
