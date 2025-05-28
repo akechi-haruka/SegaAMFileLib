@@ -20,11 +20,15 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
                 case SetAction.SetCredits:
                     sysfile.Backup.creditData.player[0].credit = (byte)opts.Value;
                     break;
+                case SetAction.SetFreePlay:
+                    sysfile.Credit.creditConfig.operation = opts.Value != 0 ? CreditOperation.OPERATION_COIN : CreditOperation.OPERATION_DEFAULT;
+                    break;
             }
             
             Program.Log.LogInformation("Success: {a}", opts.Action);
 
             data = SysData.UpdateRecord(data, sysfile.Backup);
+            data = SysData.UpdateRecord(data, sysfile.Credit);
             File.WriteAllBytes(opts.FileName, data);
             
             Program.Log.LogInformation("File saved to: {f}", opts.FileName);
