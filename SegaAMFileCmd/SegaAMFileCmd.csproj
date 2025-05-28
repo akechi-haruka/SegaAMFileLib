@@ -4,7 +4,42 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
+        <RootNamespace>Haruka.Arcade.SegaAMFileCmd</RootNamespace>
+        <PackageId>Haruka.Arcade.SegaAMFileCmd</PackageId>
+        <Version>0.0.1</Version>
+        <Title>SEGA Amusement File Application</Title>
+        <Description>Command-line applicaton to read and write common SEGA(R) file formats used in arcade games.</Description>
+        <Copyright>(c) 2025 Haruka Akechi and contributors</Copyright>
+        <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/akechi-haruka/SegaAMFileLib/blob/master/LICENSE.txt</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
+        <PackageTags>Arcade;File Formats</PackageTags>
+        <Company>Haruka Akechi</Company>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
+      <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
+      <PackageReference Include="NReco.Logging.File" Version="1.2.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SegaAMFileLib\SegaAMFileLib.csproj" />
+    </ItemGroup>
 
 </Project>

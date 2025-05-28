@@ -8,8 +8,13 @@
         <Description>Allows reading and writing of common file formats used by Sega's Arcade systems</Description>
         <Copyright>2025 Akechi Haruka</Copyright>
         <Company>Haruka Akechi</Company>
-        <AssemblyVersion>0.1</AssemblyVersion>
+        <AssemblyVersion></AssemblyVersion>
         <RootNamespace>Haruka.Arcade.SegaAMFileLib</RootNamespace>
+        <Version>0.1</Version>
+        <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/akechi-haruka/SegaAMFileLib/blob/master/LICENSE.txt</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
+        <PackageTags>Arcade;File Formats</PackageTags>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -21,12 +26,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="9.0.4" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.4" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
       <PackageReference Include="NReco.Logging.File" Version="1.2.2" />
     </ItemGroup>
 

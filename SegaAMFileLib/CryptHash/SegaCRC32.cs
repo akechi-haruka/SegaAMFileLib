@@ -1,7 +1,27 @@
-﻿namespace Haruka.Arcade.SegaAMFileLib.CryptHash {
-    public class SegaCrc32 {
+﻿using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
+using Haruka.Arcade.SegaAMFileLib.Debugging;
+using Microsoft.Extensions.Logging;
+
+namespace Haruka.Arcade.SegaAMFileLib.CryptHash {
+    public static class SegaCrc32 {
+        private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(SegaCrc32));
+
         public static uint CalcCrc32(byte[] data) {
             return new Crc32Managed().GetCrc32(data);
+        }
+
+        public static byte[] WriteCrcIntoFirst4Bytes(byte[] struc) {
+            byte[] crcableBytes = new byte[struc.Length - 4];
+            Array.Copy(struc, 0 + sizeof(uint), crcableBytes, 0, struc.Length - sizeof(uint));
+            
+            uint crcnum = CalcCrc32(crcableBytes);
+            byte[] crc = BitConverter.GetBytes(crcnum);
+            
+            Array.Copy(crc, 0, struc, 0, crc.Length);
+            
+            LOG.LogDebug("New CRC for given data: 0x" + crcnum.ToString("X2"));
+
+            return struc;
         }
     }
 

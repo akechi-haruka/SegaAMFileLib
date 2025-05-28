@@ -4,15 +4,20 @@ using Haruka.Arcade.SegaAMFileLib.Debugging;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 using Microsoft.Extensions.Logging;
 
-namespace ICFReader;
+namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
 
 public class InstallationConfigurationFile {
     private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(InstallationConfigurationFile));
 
-    private ICFHeaderRecord Header { get; }
+    public ICFHeaderRecord Header;
     private readonly List<ICFEntryRecord> records;
 
-    public InstallationConfigurationFile(byte[] data) {
+    public InstallationConfigurationFile() {
+        Header = new ICFHeaderRecord();
+        records = new List<ICFEntryRecord>();
+    }
+    
+    public InstallationConfigurationFile(byte[] data) : this() {
         int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
         int entryLen = Marshal.SizeOf<ICFEntryRecord>();
 
@@ -22,23 +27,31 @@ public class InstallationConfigurationFile {
 
         byte[] headerBytes = new byte[headerLen];
         Array.Copy(data, headerBytes, headerLen);
-        CheckCrc(headerBytes, "main CRC");
+        CheckCrc(data, "main CRC");
         Header = StructUtils.FromBytes<ICFHeaderRecord>(headerBytes);
 
-        long fullLen = headerLen + Header.entryCount * entryLen;
+        long fullLen = headerLen + Header.GetEntryCount() * entryLen;
         if (fullLen != data.Length) {
             String error = "Size error in ICF for total size: Expected " + fullLen + " bytes but got " + data.Length + " bytes";
             LOG.LogError(error);
             throw new IOException(error);
         }
 
-        records = new List<ICFEntryRecord>();
-        for (int i = 0; i < Header.entryCount; i++) {
+        uint dcrc = 0;
+        for (int i = 0; i < Header.GetEntryCount(); i++) {
             byte[] entryBytes = new byte[entryLen];
-            Array.Copy(headerBytes, headerLen + i * entryLen, entryBytes, 0, entryLen);
-            CheckCrc(entryBytes, "Entry " + i + " CRC");
-            ICFEntryRecord entry = StructUtils.FromBytes<ICFEntryRecord>(headerBytes);
+            Array.Copy(data, headerLen + i * entryLen, entryBytes, 0, entryLen);
+            ICFEntryRecord entry = StructUtils.FromBytes<ICFEntryRecord>(entryBytes);
+            if ((entry.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0) {
+                dcrc ^= SegaCrc32.CalcCrc32(entryBytes);
+            }
             records.Add(entry);
+        }
+
+        if (dcrc != Header.entryCrc) {
+            String error = "CRC error in ICF for entries: Expected " + Header.entryCrc.ToString("X2") + " but got " + dcrc.ToString("X2");
+            LOG.LogError(error);
+            throw new IOException(error);
         }
     }
 
@@ -46,8 +59,9 @@ public class InstallationConfigurationFile {
     }
 
     private void CheckCrc(byte[] data, string name) {
+        LOG.LogDebug("CRC-ing " + data.Length + " bytes for " + name);
         byte[] crcableData = new byte[data.Length - 4];
-        Array.Copy(data, data.Length + 4, crcableData, 0, data.Length - 4);
+        Array.Copy(data, 4, crcableData, 0, data.Length - 4);
         uint calculated = SegaCrc32.CalcCrc32(crcableData);
         uint stored = BitConverter.ToUInt32(data, 0);
         if (stored != calculated) {
@@ -68,11 +82,11 @@ public class InstallationConfigurationFile {
     }
 
     public ICFEntryRecord? GetRecord(ICFType type) {
-        return records.FirstOrDefault(r => r.entryFlags == EntryFlags.Enabled1 && r.entryFlags == EntryFlags.Enabled2 && r.typeFlags == type);
+        return records.FirstOrDefault(r => (r.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0 && r.typeFlags == type);
     }
 
     public ICFEntryRecord[] GetRecords(ICFType type) {
-        return records.Where(r => r.entryFlags == EntryFlags.Enabled1 && r.entryFlags == EntryFlags.Enabled2 && r.typeFlags == type).ToArray();
+        return records.Where(r => (r.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0 && r.typeFlags == type).ToArray();
     }
 
     public ICFEntryRecord? GetSystemRecord() {
@@ -83,8 +97,49 @@ public class InstallationConfigurationFile {
         return GetRecord(ICFType.App);
     }
 
+    public void AddRecord(ICFEntryRecord record) {
+        records.Add(record);
+        UpdateHeaderAfterModification();
+    }
+
+    public void ClearRecords() {
+        records.Clear();
+        UpdateHeaderAfterModification();
+    }
+
+    private void UpdateHeaderAfterModification() {
+        int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
+        int entryLen = Marshal.SizeOf<ICFEntryRecord>();
+        
+        Header.entryCount = (ulong)records.Count;
+        Header.dataSize = (uint)(headerLen + records.Count * entryLen);
+    }
+
     public byte[] Save() {
-        // TODO
-        return null;
+        int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
+        int entryLen = Marshal.SizeOf<ICFEntryRecord>();
+        long fullLen = headerLen + Header.GetEntryCount() * entryLen;
+
+        byte[] output = new byte[fullLen];
+        uint dcrc = 0;
+
+        for (int i = 0; i < records.Count; i++) {
+            byte[] record = StructUtils.GetBytes(records[i]);
+            EntryFlags flags = records[i].entryFlags;
+            if ((flags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0) {
+                dcrc ^= SegaCrc32.CalcCrc32(record);
+            }
+            Array.Copy(record, 0, output, headerLen + i * entryLen, record.Length);
+        }
+
+        Header.entryCrc = dcrc;
+        Header.mainCrc = 0;
+        
+        byte[] headerBytes = StructUtils.GetBytes(Header);
+        Array.Copy(headerBytes, output, headerBytes.Length);
+        
+        output = SegaCrc32.WriteCrcIntoFirst4Bytes(output);
+
+        return output;
     }
 }

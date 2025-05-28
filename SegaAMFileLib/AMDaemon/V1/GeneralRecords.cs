@@ -12,16 +12,20 @@ public unsafe struct Timestamp {
     public byte second;
     private fixed byte padding[1];
 
+    public Timestamp() {
+    }
+
+    public Timestamp(DateTime date) {
+        year = (ushort)date.Year;
+        month = (byte)date.Month;
+        day = (byte)date.Day;
+        hour = (byte)date.Hour;
+        minute = (byte)date.Minute;
+        second = (byte)date.Second;
+    }
+
     public static Timestamp Now() {
-        DateTime now = DateTime.Now;
-        return new Timestamp() {
-            year = (ushort)now.Year,
-            month = (byte)now.Month,
-            day = (byte)now.Day,
-            hour = (byte)now.Hour,
-            minute = (byte)now.Minute,
-            second = (byte)now.Second
-        };
+        return new Timestamp(DateTime.Now);
     }
 
     public DateTime ToDateTime() {

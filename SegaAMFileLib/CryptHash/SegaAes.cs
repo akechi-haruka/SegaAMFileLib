@@ -34,7 +34,7 @@ public static class SegaAes {
             }
         }
 
-        return data;
+        return output;
     }
 
     public static byte[] Encrypt(byte[] data, byte[] key, byte[] iv) {

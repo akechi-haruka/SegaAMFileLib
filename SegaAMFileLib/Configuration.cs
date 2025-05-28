@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 
 namespace Haruka.Arcade.SegaAMFileLib {
-    class Configuration {
+    public static class Configuration {
 
         public static IConfigurationRoot Current { get; private set; }
 
