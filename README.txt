@@ -11,7 +11,7 @@ Nightly builds / downloads: https://nightly.link/akechi-haruka/SEGAAMFileLib/wor
 What can the library and application be used for?
 
 * Write and read the following file types:
- - *.icf
+ - ICF1/ICF2
  - sysfile.dat
 
 TODOs:
