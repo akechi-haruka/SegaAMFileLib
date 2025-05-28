@@ -166,12 +166,12 @@ public class SysData {
             
             Array.Copy(crc, 0, struc, OFFSET_CRC, crc.Length);
             
-            LOG.LogDebug("New CRC for " + struc + ": 0x" + crcnum.ToString("X2"));
+            LOG.LogDebug("New CRC for " + record.Structure + ": 0x" + crcnum.ToString("X2"));
         }
 
         Array.Copy(struc, 0, data, record.StartAddress, record.Size);
         
-        LOG.LogTrace("Updated " + struc + " in SysData");
+        LOG.LogTrace("Updated " + record.Structure + " in SysData");
 
         return data;
     }
