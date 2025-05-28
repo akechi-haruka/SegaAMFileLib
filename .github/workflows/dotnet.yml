@@ -19,8 +19,8 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
-      #    - name: Test
-      #      run: dotnet test --no-build --verbosity normal
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
       - name: Publish
         run: |
           dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
