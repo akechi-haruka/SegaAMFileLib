@@ -58,7 +58,7 @@ namespace Haruka.Arcade.SegaAMFileLib.Misc {
         /// <returns>A struct based on the input array.</returns>
         public static T FromBytes<T>(byte[] arr) where T : struct {
 
-            T str = default;
+            T str;
 
             GCHandle h = default;
 
@@ -105,6 +105,21 @@ namespace Haruka.Arcade.SegaAMFileLib.Misc {
             for (int i = fromOffset, j = toOffset; i < fromOffset + length; i++, j++) {
                 to[j] = from[i];
             }
+        }
+        
+        internal static unsafe void Copy(String from, byte* to, int length) {
+            Copy(from, to, length, Encoding.ASCII);
+        }
+        
+        internal static unsafe void Copy(String from, byte* to, int length, Encoding encoding) {
+            byte[] fromBytes = encoding.GetBytes(from);
+            for (int i = 0; i < length && i < fromBytes.Length; i++) {
+                to[i] = fromBytes[i];
+            }
+        }
+
+        internal static unsafe String CopyToString(byte* from, int length) {
+            return new String((sbyte*)from, 0, length);
         }
     }
 }

@@ -69,8 +69,8 @@ public class ICFTest {
 
         InstallationConfigurationFile icf = new InstallationConfigurationFile();
 
-        icf.Header.appId = gameId;
-        icf.Header.platformId = platformId.Substring(0, 3);
+        icf.Header.SetAppId(gameId);
+        icf.Header.SetPlatformId(platformId.Substring(0, 3));
         icf.Header.platformGeneration = Convert.ToByte(platformId.Substring(3));
         
         Timestamp time = Timestamp.Now();

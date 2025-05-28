@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Haruka.Arcade.SegaAMFileLib.Misc;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
 
@@ -8,16 +9,38 @@ public unsafe struct ICFHeaderRecord {
     public uint dataSize;
     private fixed byte padding[8];
     public ulong entryCount;
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
-    public String appId;
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 3)]
-    public String platformId;
+    public fixed byte appId[4];
+    public fixed byte platformId[3];
     public byte platformGeneration;
     public uint entryCrc;
     private fixed byte padding_[28];
 
     public uint GetEntryCount() {
         return (uint)entryCount;
+    }
+
+    public String GetAppId() {
+        fixed (byte* ptr = appId) {
+            return new String((sbyte*)ptr, 0, 4);
+        }
+    }
+
+    public String GetPlatformId(bool withGeneration = true) {
+        fixed (byte* ptr = platformId) {
+            return new String((sbyte*)ptr, 0, 3) + platformGeneration;
+        }
+    }
+
+    public void SetAppId(String str) {
+        fixed (byte* ptr = appId) {
+            StructUtils.Copy(str, ptr, 4);
+        }
+    }
+
+    public void SetPlatformId(String str) {
+        fixed (byte* ptr = platformId) {
+            StructUtils.Copy(str, ptr, 3);
+        }
     }
 }
 

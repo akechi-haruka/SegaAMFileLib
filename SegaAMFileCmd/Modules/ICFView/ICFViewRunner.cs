@@ -54,8 +54,8 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             InstallationConfigurationFile icf = new InstallationConfigurationFile(data, key, iv);
 
             ICFHeaderRecord header = icf.Header;
-            Program.Log.LogInformation("App ID: {a}", header.appId);
-            Program.Log.LogInformation("Platform ID: {i}{g}", header.platformId, header.platformGeneration);
+            Program.Log.LogInformation("App ID: {a}", header.GetAppId());
+            Program.Log.LogInformation("Platform ID: {i}{g}", header.GetPlatformId(false), header.platformGeneration);
 
             for (int i = 0; i < icf.GetRecordCount(); i++) {
                 ICFEntryRecord record = icf.GetRecord(i);

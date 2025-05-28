@@ -68,7 +68,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
             }
 
             DateTime timestamp = DateTime.Now;
-            if (opts.Timestamp != null) {
+            if (!String.IsNullOrWhiteSpace(opts.Timestamp)) {
                 if (!DateTime.TryParse(opts.Timestamp, out timestamp)) {
                     Program.Log.LogError("Failed to parse given timestamp: " + opts.Timestamp);
                     return 1;
@@ -77,14 +77,14 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
 
             InstallationConfigurationFile icf = new InstallationConfigurationFile();
 
-            icf.Header.appId = opts.GameId;
-            icf.Header.platformId = opts.PlatformId.Substring(0, 3);
+            icf.Header.SetAppId(opts.GameId);
+            icf.Header.SetPlatformId(opts.PlatformId.Substring(0, 3));
             icf.Header.platformGeneration = Convert.ToByte(opts.PlatformId.Substring(3));
 
             Version ver = new Version {
                 major = (ushort)parsedVersion.Major,
                 minor = (byte)parsedVersion.Minor,
-                build = (byte)parsedVersion.Revision
+                build = (byte)parsedVersion.Build
             };
             Timestamp time = new Timestamp(timestamp);
 
@@ -104,6 +104,14 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
                 version = ver
             };
             icf.AddRecord(appEntry);
+            ICFEntryRecord optionEntry = new ICFEntryRecord {
+                typeFlags = ICFType.Option,
+                entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
+                timestamp = time,
+                requiredVersion = ver,
+                version = ver
+            };
+            icf.AddRecord(optionEntry);
 
             byte[] data = icf.Save();
 
