@@ -85,8 +85,8 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
             Program.Log.LogInformation("Remain synchronized to {v}", r);
 
             sysfile1.Backup.creditData.player[0].credit = (byte)v;
-            sysfile2.Backup.creditData.player[0].credit = (byte)r;
-            sysfile1.Backup.creditData.player[0].remain = (byte)v;
+            sysfile2.Backup.creditData.player[0].credit = (byte)v;
+            sysfile1.Backup.creditData.player[0].remain = (byte)r;
             sysfile2.Backup.creditData.player[0].remain = (byte)r;
         }
 
