@@ -27,7 +27,7 @@ public unsafe struct ICFHeaderRecord {
 
     public String GetPlatformId(bool withGeneration = true) {
         fixed (byte* ptr = platformId) {
-            return new String((sbyte*)ptr, 0, 3) + platformGeneration;
+            return new String((sbyte*)ptr, 0, 3) + (withGeneration ? platformGeneration : "");
         }
     }
 
