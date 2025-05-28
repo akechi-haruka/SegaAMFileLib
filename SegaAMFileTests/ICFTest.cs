@@ -63,7 +63,6 @@ public class ICFTest {
             minor = 30,
             build = 14
         };
-        const String fileName = "TestFiles\\tmp\\ICF1";
         
         byte[] key = File.ReadAllBytes("TestFiles\\icf_key.bin");
         byte[] iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
