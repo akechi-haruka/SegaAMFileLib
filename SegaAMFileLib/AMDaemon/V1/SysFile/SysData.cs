@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
 
+/// <summary>
+/// Class holding values that are contained in an instance of sysfile.dat.
+/// </summary>
 public class SysData {
     private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(SysData));
 
@@ -14,7 +17,7 @@ public class SysData {
     private const uint OFFSET_CRC = 0;
     private const uint OFFSET_UID = 4;
 
-    internal static readonly BackupRecordDefinition[] Records = new BackupRecordDefinition[] {
+    internal static readonly BackupRecordDefinition[] RECORDS = new BackupRecordDefinition[] {
         new BackupRecordDefinition(typeof(DataRecordCredit), 0x0000, 0x0200, true, false, 0),
         new BackupRecordDefinition(typeof(DataRecordCredit), 0x3000, 0x0200, true, false, 0),
         new BackupRecordDefinition(typeof(DataRecordNetwork), 0x0200, 0x0200, true, false, 0),
@@ -45,21 +48,69 @@ public class SysData {
         new BackupRecordDefinition(typeof(DataRecordAimePay), 0x5C00, 0x0400, true, true, 0x2D2D2D2D),
     };
 
+    /// <summary>
+    /// Aime Reader data.
+    /// </summary>
     public DataRecordAime Aime;
+    /// <summary>
+    /// AimePay history data.
+    /// </summary>
     public DataRecordAimePay AimePay;
+    /// <summary>
+    /// Credit and Bookkeeping data.
+    /// </summary>
     public DataRecordBackup Backup;
+    /// <summary>
+    /// Credit configuration data.
+    /// </summary>
     public DataRecordCredit Credit;
+    /// <summary>
+    /// Credit clear history data.
+    /// </summary>
     public DataRecordCreditClear CreditClear;
+    /// <summary>
+    /// Dip switch data.
+    /// </summary>
     public DataRecordDipsw Dipsw;
+    /// <summary>
+    /// Unknown.
+    /// </summary>
     public DataRecordDisplay Display;
+    /// <summary>
+    /// E-Money authentication and history data.
+    /// </summary>
     public DataRecordEmoney Emoney;
+    /// <summary>
+    /// System error history data.
+    /// </summary>
     public DataRecordErrorLog ErrorLog;
+    /// <summary>
+    /// Unknown.
+    /// </summary>
     public DataRecordLocalize Localize;
+    /// <summary>
+    /// Network configuration data for adapter 1.
+    /// </summary>
     public DataRecordNetwork Network0;
+    /// <summary>
+    /// Network configuration data for adapter 2.
+    /// </summary>
     public DataRecordNetwork Network1;
+    /// <summary>
+    /// Unknown.
+    /// </summary>
     public DataRecordTimezone Timezone;
+    /// <summary>
+    /// Unknown.
+    /// </summary>
     public DataRecordWlan Wlan;
 
+    /// <summary>
+    /// Reads the content of sysfile.dat.
+    /// </summary>
+    /// <param name="data">The raw file data (obtained with <see cref="File.ReadAllBytes"/> or similar)</param>
+    /// <exception cref="ArgumentException">If the file length is invalid or a required record is missing.</exception>
+    /// <exception cref="IOException">If there is an error deserializing the data.</exception>
     public SysData(byte[] data) {
         if (data.Length != FILE_LENGTH) {
             throw new ArgumentException("data given is " + data.Length + " bytes, but " + FILE_LENGTH + " are expected");
@@ -81,8 +132,18 @@ public class SysData {
         Wlan = GetRecord<DataRecordWlan>(data);
     }
 
+    /// <summary>
+    /// Loads a record from the given raw content of sysfile.dat.
+    /// </summary>
+    /// <param name="data">The raw file data to read from.</param>
+    /// <param name="slot">The backup slot to load from (0-4).</param>
+    /// <typeparam name="T">The type of record to load.</typeparam>
+    /// <returns>An instantiated object of the given record type.</returns>
+    /// <exception cref="ArgumentException">If the record type is not known.</exception>
+    /// <exception cref="IndexOutOfRangeException">If the backup slot does not exist.</exception>
+    /// <exception cref="IOException">If there is an error deserializing the data.</exception>
     public static T GetRecord<T>(byte[] data, int slot = 0) where T : struct {
-        List<BackupRecordDefinition> records = Records.Where(record => record.Structure == typeof(T)).ToList();
+        List<BackupRecordDefinition> records = RECORDS.Where(record => record.Structure == typeof(T)).ToList();
         if (records.Count == 0) {
             throw new ArgumentException("no such record: " + typeof(T));
         }
@@ -133,8 +194,19 @@ public class SysData {
         return StructUtils.FromBytes<T>(struc);
     }
 
+    /// <summary>
+    /// Updates a given record in the raw file data. (which can then be saved back to a file)
+    /// </summary>
+    /// <param name="data">The raw file data to read from.</param>
+    /// <param name="recordData">The record to save back into the file data.</param>
+    /// <param name="slot">The backup slot to load from (0-4).</param>
+    /// <typeparam name="T">The type of record to load.</typeparam>
+    /// <returns>The updated raw file data.</returns>
+    /// <exception cref="ArgumentException">If the record type is not known.</exception>
+    /// <exception cref="IndexOutOfRangeException">If the backup slot does not exist.</exception>
+    /// <exception cref="IOException">If there is an error serializing the data.</exception>
     public static byte[] UpdateRecord<T>(byte[] data, T recordData, int slot = 0) where T : struct {
-        List<BackupRecordDefinition> records = Records.Where(record => record.Structure == typeof(T)).ToList();
+        List<BackupRecordDefinition> records = RECORDS.Where(record => record.Structure == typeof(T)).ToList();
         if (records.Count == 0) {
             throw new ArgumentException("no such record: " + typeof(T));
         }

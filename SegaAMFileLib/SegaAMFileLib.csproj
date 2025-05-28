@@ -43,5 +43,9 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    </PropertyGroup>
 
 </Project>
