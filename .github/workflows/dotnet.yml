@@ -19,7 +19,7 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
-      - name: use this action, test solution dir
+      - name: Test
         uses: zyborg/dotnet-tests-report@v1
         with:
          project_path: SegaAMFileTests
