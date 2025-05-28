@@ -1,0 +1,42 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+name: .NET
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      #    - name: Test
+      #      run: dotnet test --no-build --verbosity normal
+      - name: Publish
+        run: |
+          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
+          dotnet publish .\SEGAAMFileCmd\SEGAAMFileCmd.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileCmd\Properties\PublishProfiles\SegaAMFileCmd.pubxml
+      - name: Upload Lib NET 8
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: SegaAMFileLib-net8-latest
+          path: SEGAAMFileLib/publish/net8
+          if-no-files-found: error
+          overwrite: true
+      - name: Upload Cmd
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: SegaAMFileCmd-latest
+          path: SEGAAMFileCmd/publish
+          if-no-files-found: error
+          overwrite: true
+              

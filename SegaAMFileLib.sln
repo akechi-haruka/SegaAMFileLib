@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegaAMFileLib", "SegaAMFile
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegaAMFileTests", "SegaAMFileTests\SegaAMFileTests.csproj", "{F8FD9364-2B25-4A65-86FB-C4DDD5E9CCD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegaAMFileCmd", "SegaAMFileCmd\SegaAMFileCmd.csproj", "{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{F8FD9364-2B25-4A65-86FB-C4DDD5E9CCD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8FD9364-2B25-4A65-86FB-C4DDD5E9CCD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8FD9364-2B25-4A65-86FB-C4DDD5E9CCD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
