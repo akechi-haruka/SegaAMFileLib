@@ -12,7 +12,6 @@ namespace Haruka.Arcade.SegaAMFileCmd {
         public static ILogger Log;
 
         static int Main(string[] args) {
-            Log = Logging.Factory.CreateLogger(nameof(Program));
             try {
                 return Parser.Default.ParseArguments
                         <SysfileSetRunner, SysfileSyncRunner, ICFViewRunner, ICFWriteRunner>(args)
@@ -32,6 +31,7 @@ namespace Haruka.Arcade.SegaAMFileCmd {
 
         internal static void SetGlobalOptions(GlobalOptions options) {
             Logging.Initialize(Configuration.Initialize(), options.Silent, options.LogFile);
+            Log = Logging.Factory.CreateLogger(nameof(Program));
         }
 
     }
