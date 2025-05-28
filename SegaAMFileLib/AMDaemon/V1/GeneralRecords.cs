@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1;
@@ -30,6 +31,10 @@ public unsafe struct Timestamp {
 
     public DateTime ToDateTime() {
         return new DateTime(year, month, day, hour, minute, second);
+    }
+
+    public override string ToString() {
+        return ToDateTime().ToString(CultureInfo.InvariantCulture);
     }
 }
 
