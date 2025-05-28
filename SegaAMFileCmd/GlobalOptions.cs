@@ -8,7 +8,7 @@ namespace Haruka.Arcade.SegaAMFileCmd {
         [UsedImplicitly]
         public bool Silent { get; }
 
-        [Option('f', "log-file", Required = false, HelpText = "Enables logging to file.")]
+        [Option("log-file", Required = false, HelpText = "Enables logging to file.")]
         [UsedImplicitly]
         public bool LogFile { get; }
 

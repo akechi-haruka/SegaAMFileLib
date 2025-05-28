@@ -11,10 +11,10 @@ namespace Haruka.Arcade.SegaAMFileCmd {
     static class Program {
         public static ILogger Log;
 
-        static int Main(string[] args) {
+        private static int Main(string[] args) {
             try {
                 return Parser.Default.ParseArguments
-                        <SysfileSetRunner, SysfileSyncRunner, ICFViewRunner, ICFWriteRunner>(args)
+                        <Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options>(args)
                     .MapResult<Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, int>(
                         SysfileSetRunner.Run,
                         SysfileSyncRunner.Run,
@@ -22,10 +22,16 @@ namespace Haruka.Arcade.SegaAMFileCmd {
                         ICFWriteRunner.Run,
                         _ => 1);
             } catch(Exception ex) {
-                Log.LogCritical(ex, "An error has occurred");
+                if (Log != null) {
+                    Log.LogCritical(ex, "An error has occurred");
+                } else {
+                    Console.WriteLine("An error has occurred");
+                    Console.WriteLine(ex);
+                }
+
                 return Int32.MinValue;
             } finally {
-                Log.LogInformation("Exiting");
+                Log?.LogInformation("Exiting");
             }
         }
 

@@ -7,7 +7,7 @@ using Version = Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.Version;
 namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
     class ICFWriteRunner {
         private const String KEY_FILE_NAME = "icf_key.bin";
-        private const String IV_FILE_NAME = "iv_key.bin";
+        private const String IV_FILE_NAME = "icf_iv.bin";
 
         internal static int Run(Options opts) {
             Program.SetGlobalOptions(opts);
