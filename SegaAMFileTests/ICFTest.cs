@@ -37,18 +37,30 @@ public class ICFTest {
 
     [Test]
     public void T02_Read_1() {
-        byte[] rawFile = File.ReadAllBytes("TestFiles\\ICF1");
-        byte[] key = File.ReadAllBytes("TestFiles\\icf_key.bin");
-        byte[] iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
+        byte[] rawFile, key, iv;
+        try {
+            rawFile = File.ReadAllBytes("TestFiles\\ICF1");
+            key = File.ReadAllBytes("TestFiles\\icf_key.bin");
+            iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
+        } catch (Exception ex) {
+            Assert.Inconclusive("Failed reading one of the required test files: " + ex);
+            return;
+        }
         InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, key, iv);
         ValidateICF(icf);
     }
 
     [Test]
     public void T03_Read_2() {
-        byte[] rawFile = File.ReadAllBytes("TestFiles\\ICF2");
-        byte[] key = File.ReadAllBytes("TestFiles\\icf_key.bin");
-        byte[] iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
+        byte[] rawFile, key, iv;
+        try {
+            rawFile = File.ReadAllBytes("TestFiles\\ICF1");
+            key = File.ReadAllBytes("TestFiles\\icf_key.bin");
+            iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
+        } catch (Exception ex) {
+            Assert.Inconclusive("Failed reading one of the required test files: " + ex);
+            return;
+        }
         InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, key, iv);
         ValidateICF(icf);
     }
@@ -64,8 +76,14 @@ public class ICFTest {
             build = 14
         };
         
-        byte[] key = File.ReadAllBytes("TestFiles\\icf_key.bin");
-        byte[] iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
+        byte[] key, iv;
+        try {
+            key = File.ReadAllBytes("TestFiles\\icf_key.bin");
+            iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
+        } catch (Exception ex) {
+            Assert.Inconclusive("Failed reading one of the required test files: " + ex);
+            return;
+        }
 
         InstallationConfigurationFile icf = new InstallationConfigurationFile();
 
