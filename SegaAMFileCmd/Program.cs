@@ -2,6 +2,7 @@
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFView;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet;
+using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync;
 using Haruka.Arcade.SegaAMFileLib;
 using Haruka.Arcade.SegaAMFileLib.Debugging;
 using Microsoft.Extensions.Logging;
@@ -14,9 +15,10 @@ namespace Haruka.Arcade.SegaAMFileCmd {
             Log = Logging.Factory.CreateLogger(nameof(Program));
             try {
                 return Parser.Default.ParseArguments
-                        <SysfileSetRunner, ICFViewRunner, ICFWriteRunner>(args)
-                    .MapResult<Modules.SysfileSet.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, int>(
+                        <SysfileSetRunner, SysfileSyncRunner, ICFViewRunner, ICFWriteRunner>(args)
+                    .MapResult<Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, int>(
                         SysfileSetRunner.Run,
+                        SysfileSyncRunner.Run,
                         ICFViewRunner.Run,
                         ICFWriteRunner.Run,
                         _ => 1);
