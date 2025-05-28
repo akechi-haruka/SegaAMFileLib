@@ -12,11 +12,6 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
         internal static int Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
-            if (!File.Exists(opts.FileName)) {
-                Program.Log.LogError("Specified file not found: {f}", opts.FileName);
-                return 1;
-            }
-
             if (opts.Key == null && !File.Exists(KEY_FILE_NAME)) {
                 Program.Log.LogError("Neither an encryption key was specified, nor was {f} found in the program directory.", KEY_FILE_NAME);
                 return 1;
