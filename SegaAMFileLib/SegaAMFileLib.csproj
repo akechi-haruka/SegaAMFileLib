@@ -15,6 +15,7 @@
         <PackageLicenseUrl>https://github.com/akechi-haruka/SegaAMFileLib/blob/master/LICENSE.txt</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
         <PackageTags>Arcade;File Formats</PackageTags>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
