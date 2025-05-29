@@ -16,7 +16,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
         [UsedImplicitly]
         public SyncType SyncCredits { get; set; }
 
-        [Value(3, Required = true, HelpText = "How to synchronize bookkeeping stats (File1, File2, Higher, Lower)", Default = SyncType.Higher)]
+        [Value(3, Required = true, HelpText = "How to synchronize bookkeeping stats (File1, File2, Higher, Lower, Combine)", Default = SyncType.Higher)]
         [UsedImplicitly]
         public SyncType SyncBookkeeping { get; set; }
     }
@@ -25,6 +25,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
         File1,
         File2,
         Higher,
-        Lower
+        Lower,
+        Combine
     }
 }

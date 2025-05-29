@@ -100,6 +100,8 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
                     return Math.Min(v1, v2);
                 case SyncType.Higher:
                     return Math.Max(v1, v2);
+                case SyncType.Combine:
+                    return v1 + v2;
                 default:
                     throw new ArgumentException("unknown option: " + option);
             }
