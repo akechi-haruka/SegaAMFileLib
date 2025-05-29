@@ -41,6 +41,10 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
         }
 
         private static unsafe void UpdateBookkeeping(SysData sysfile1, SysData sysfile2, SyncType option) {
+            if (option == SyncType.NoChange) {
+                Program.Log.LogInformation("Bookkeeping will not be updated");
+                return;
+            }
             for (int i = 0; i < 8; i++) {
                 int c = Sync((int)sysfile1.Backup.bookkeeping.coinChute[i], (int)sysfile2.Backup.bookkeeping.coinChute[i], option);
 
@@ -82,6 +86,10 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
         }
 
         private static void UpdateCredits(SysData sysfile1, SysData sysfile2, SyncType option) {
+            if (option == SyncType.NoChange) {
+                Program.Log.LogInformation("Credits will not be updated");
+                return;
+            }
             int v = Sync(sysfile1.Backup.creditData.player[0].credit, sysfile2.Backup.creditData.player[0].credit, option);
             int r = Sync(sysfile1.Backup.creditData.player[0].remain, sysfile2.Backup.creditData.player[0].remain, option);
             

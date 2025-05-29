@@ -17,16 +17,17 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
         [UsedImplicitly]
         public string FileName2 { get; set; }
 
-        [Value(2, Required = true, HelpText = "How to synchronize credits (File1, File2, Higher, Lower)", Default = SyncType.Higher)]
+        [Value(2, Required = true, HelpText = "How to synchronize credits (NoChange, File1, File2, Higher, Lower)", Default = SyncType.Higher)]
         [UsedImplicitly]
         public SyncType SyncCredits { get; set; }
 
-        [Value(3, Required = true, HelpText = "How to synchronize bookkeeping stats (File1, File2, Higher, Lower, Combine)", Default = SyncType.Higher)]
+        [Value(3, Required = true, HelpText = "How to synchronize bookkeeping stats (NoChange, File1, File2, Higher, Lower, Combine)", Default = SyncType.Higher)]
         [UsedImplicitly]
         public SyncType SyncBookkeeping { get; set; }
     }
 
     enum SyncType {
+        NoChange,
         File1,
         File2,
         Higher,
