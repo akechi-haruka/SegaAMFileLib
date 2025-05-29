@@ -4,6 +4,11 @@ using JetBrains.Annotations;
 namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
     [Verb("sysfile-sync", HelpText = "Synchronize the data between multiple sysfile.dat")]
     class Options : GlobalOptions {
+        
+        [Option('f', "file", Required = false, HelpText = "The sysfile (1 or 2) which should be updated. Otherwise both are updated.")]
+        [UsedImplicitly]
+        public int TargetFile { get; set; }
+        
         [Value(0, Required = true, HelpText = "The first sysfile.dat")]
         [UsedImplicitly]
         public string FileName1 { get; set; }

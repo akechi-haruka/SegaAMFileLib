@@ -24,15 +24,19 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
 
             UpdateCredits(sysfile1, sysfile2, opts.SyncCredits);
             UpdateBookkeeping(sysfile1, sysfile2, opts.SyncBookkeeping);
-            
-            data1 = SysData.UpdateRecord(data1, sysfile1.Backup);
-            data2 = SysData.UpdateRecord(data1, sysfile2.Backup);
-            
-            File.WriteAllBytes(opts.FileName1, data1);
-            Program.Log.LogInformation("File 1 saved to: {f}", opts.FileName1);
-            File.WriteAllBytes(opts.FileName2, data2);
-            Program.Log.LogInformation("File 2 saved to: {f}", opts.FileName2);
-            
+
+            if (opts.TargetFile is 0 or 1) {
+                data1 = SysData.UpdateRecord(data1, sysfile1.Backup);
+                File.WriteAllBytes(opts.FileName1, data1);
+                Program.Log.LogInformation("File 1 saved to: {f}", opts.FileName1);
+            }
+
+            if (opts.TargetFile is 0 or 2) {
+                data2 = SysData.UpdateRecord(data2, sysfile2.Backup);
+                File.WriteAllBytes(opts.FileName2, data2);
+                Program.Log.LogInformation("File 2 saved to: {f}", opts.FileName2);
+            }
+
             return 0;
         }
 
