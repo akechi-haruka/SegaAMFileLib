@@ -179,6 +179,31 @@ public unsafe struct DataRecordBackup {
     /// </summary>
     public Bookkeeping bookkeeping;
     private fixed byte padding[296];
+
+    /// <summary>
+    /// Inserts the given number of coins and updates bookkeeping.
+    /// </summary>
+    /// <param name="amount">The number of coins to insert.</param>
+    /// <param name="chute">The coin chute in which coins have been inserted.</param>
+    /// <param name="player">The player slot who inserted coins.</param>
+    public void InsertCoins(uint amount, uint chute = 0, uint player = 0) {
+        creditData.player[player].credit += (byte)amount;
+        bookkeeping.coinChute[chute] += amount;
+        bookkeeping.coinCredit += amount;
+        bookkeeping.totalCoin += amount;
+        bookkeeping.totalCredit += amount;
+    }
+
+    /// <summary>
+    /// Removes the given number of coins. Does not update bookeeping.
+    /// </summary>
+    /// <param name="amount">The number of coins to remove.</param>
+    /// <param name="player">The player slot who removed coins.</param>
+    public void RemoveCoins(uint amount, uint player = 0) {
+        int c = creditData.player[player].credit;
+        c -= (int)amount;
+        creditData.player[player].credit = (byte)Math.Max(0, c);
+    }
 }
 
 /// <summary>

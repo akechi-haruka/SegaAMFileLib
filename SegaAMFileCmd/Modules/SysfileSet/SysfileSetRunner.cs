@@ -17,6 +17,12 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
             SysData sysfile = new SysData(data);
 
             switch (opts.Action) {
+                case SetAction.InsertCredits:
+                    sysfile.Backup.InsertCoins((uint)opts.Value);
+                    break;
+                case SetAction.RemoveCredits:
+                    sysfile.Backup.RemoveCoins((uint)opts.Value);
+                    break;
                 case SetAction.SetCredits:
                     sysfile.Backup.creditData.player[0].credit = (byte)opts.Value;
                     break;
