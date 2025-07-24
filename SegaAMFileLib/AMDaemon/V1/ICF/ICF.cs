@@ -16,6 +16,7 @@ public class InstallationConfigurationFile {
     /// The header of the ICF data, holding CRC, size, game and platform information.
     /// </summary>
     public ICFHeaderRecord Header;
+
     private readonly List<ICFEntryRecord> records;
 
     /// <summary>
@@ -25,7 +26,7 @@ public class InstallationConfigurationFile {
         Header = new ICFHeaderRecord();
         records = new List<ICFEntryRecord>();
     }
-    
+
     /// <summary>
     /// Reads a ICF file from the given (decrypted) data.
     /// </summary>
@@ -60,6 +61,7 @@ public class InstallationConfigurationFile {
             if ((entry.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0) {
                 dcrc ^= SegaCrc32.CalcCrc32(entryBytes);
             }
+
             records.Add(entry);
         }
 
@@ -122,6 +124,7 @@ public class InstallationConfigurationFile {
     public ICFEntryRecord? GetRecord(ICFType type) {
         return records.FirstOrDefault(r => (r.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0 && r.typeFlags == type);
     }
+
     /// <summary>
     /// Gets all enabled records of the given type.
     /// </summary>
@@ -167,7 +170,7 @@ public class InstallationConfigurationFile {
     private void UpdateHeaderAfterModification() {
         int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
         int entryLen = Marshal.SizeOf<ICFEntryRecord>();
-        
+
         Header.entryCount = (ulong)records.Count;
         Header.dataSize = (uint)(headerLen + records.Count * entryLen);
     }
@@ -180,25 +183,28 @@ public class InstallationConfigurationFile {
         int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
         int entryLen = Marshal.SizeOf<ICFEntryRecord>();
         long fullLen = headerLen + Header.GetEntryCount() * entryLen;
+        LOG.LogTrace("Writing " + fullLen + " bytes (" + headerLen + " + " + entryLen + " * " + Header.GetEntryCount() + ")");
 
         byte[] output = new byte[fullLen];
         uint dcrc = 0;
 
         for (int i = 0; i < records.Count; i++) {
+            LOG.LogDebug("Writing record: " + records[i]);
             byte[] record = StructUtils.GetBytes(records[i]);
             EntryFlags flags = records[i].entryFlags;
             if ((flags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0) {
                 dcrc ^= SegaCrc32.CalcCrc32(record);
             }
+
             Array.Copy(record, 0, output, headerLen + i * entryLen, record.Length);
         }
 
         Header.entryCrc = dcrc;
         Header.mainCrc = 0;
-        
+
         byte[] headerBytes = StructUtils.GetBytes(Header);
         Array.Copy(headerBytes, output, headerBytes.Length);
-        
+
         output = SegaCrc32.WriteCrcIntoFirst4Bytes(output);
 
         return output;
