@@ -14,6 +14,7 @@ public class ICFTest {
     [SetUp]
     public void Setup() {
         Logging.Initialize(Configuration.Initialize());
+        Logging.Main.LogDebug(Environment.CurrentDirectory);
     }
 
     private static void CheckSize(Type struc, int expected) {
@@ -68,11 +69,11 @@ public class ICFTest {
     [Test]
     public void T04_WriteReadCheck() {
 
-        const String gameId = "XXXX";
+        const String gameId = "SDEM";
         const String platformId = "AAV1";
         Version ver = new Version() {
             major = 1,
-            minor = 30,
+            minor = 66,
             build = 14
         };
         
@@ -115,13 +116,21 @@ public class ICFTest {
 
         byte[] data = icf.Save();
         
+        File.WriteAllBytes("TestFiles\\ICF1_out_plain", data);
+        
         data = SegaAes.Encrypt(data, key, iv);
+        
+        File.WriteAllBytes("TestFiles\\ICF1_out", data);
 
         InstallationConfigurationFile icf2 = new InstallationConfigurationFile(data, key, iv);
+        
+        Logging.Main.LogInformation(icf2.GetAppRecord().Value.version.ToString());
+        Logging.Main.LogInformation(icf2.GetAppRecord().Value.timestamp.ToString());
         
         Assert.That(icf2.GetRecordCount(), Is.EqualTo(icf.GetRecordCount()));
         Assert.That(icf2.GetSystemRecord(), Is.EqualTo(icf.GetSystemRecord()));
         Assert.That(icf2.GetAppRecord(), Is.EqualTo(icf.GetAppRecord()));
+        Assert.That(icf2.GetAppRecord().Value.version.ToString(), Is.EqualTo(icf.GetAppRecord().Value.version.ToString()));
     }
     
 }
