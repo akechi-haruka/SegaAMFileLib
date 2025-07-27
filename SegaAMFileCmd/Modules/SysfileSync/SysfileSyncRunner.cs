@@ -68,47 +68,45 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync {
 
                 Bookkeeping modifiedb = modified.Backup.bookkeeping;
                 Bookkeeping unmodifiedb = unmodified.Backup.bookkeeping;
-                Bookkeeping b1 = sysfile1.Backup.bookkeeping;
-                Bookkeeping b2 = sysfile2.Backup.bookkeeping;
                 
                 uint c;
                 for (int i = 0; i < 8; i++) {
                     c = modifiedb.coinChute[i] - unmodifiedb.coinChute[i];
 
-                    b1.coinChute[i] += c;
-                    b2.coinChute[i] += c;
+                    sysfile1.Backup.bookkeeping.coinChute[i] += c;
+                    sysfile2.Backup.bookkeeping.coinChute[i] += c;
 
                     Program.Log.LogInformation("Chute {i} added {v}", i, c);
                 }
 
                 c = modifiedb.coinCredit - unmodifiedb.coinCredit;
-                b1.coinCredit += c;
-                b2.coinCredit += c;
+                sysfile1.Backup.bookkeeping.coinCredit += c;
+                sysfile2.Backup.bookkeeping.coinCredit += c;
                 Program.Log.LogInformation("Coin-Credit added {v}", c);
 
                 c = modifiedb.emoneyCoin - unmodifiedb.emoneyCoin;
-                b1.emoneyCoin += c;
-                b2.emoneyCoin += c;
+                sysfile1.Backup.bookkeeping.emoneyCoin += c;
+                sysfile2.Backup.bookkeeping.emoneyCoin += c;
                 Program.Log.LogInformation("E-Money-Coin added {v}", c);
 
                 c = modifiedb.emoneyCredit - unmodifiedb.emoneyCredit;
-                b1.emoneyCredit += c;
-                b2.emoneyCredit += c;
+                sysfile1.Backup.bookkeeping.emoneyCredit += c;
+                sysfile2.Backup.bookkeeping.emoneyCredit += c;
                 Program.Log.LogInformation("E-Money-Credit added {v}", c);
 
                 c = modifiedb.serviceCredit - unmodifiedb.serviceCredit;
-                b1.serviceCredit += c;
-                b2.serviceCredit += c;
+                sysfile1.Backup.bookkeeping.serviceCredit += c;
+                sysfile2.Backup.bookkeeping.serviceCredit += c;
                 Program.Log.LogInformation("Service Credit added {v}", c);
 
                 c = modifiedb.totalCoin - unmodifiedb.totalCoin;
-                b1.totalCoin += c;
-                b2.totalCoin += c;
+                sysfile1.Backup.bookkeeping.totalCoin += c;
+                sysfile2.Backup.bookkeeping.totalCoin += c;
                 Program.Log.LogInformation("Total Coin added {v}", c);
 
                 c = modifiedb.totalCredit - unmodifiedb.totalCredit;
-                b1.totalCredit += c;
-                b2.totalCredit += c;
+                sysfile1.Backup.bookkeeping.totalCredit += c;
+                sysfile2.Backup.bookkeeping.totalCredit += c;
                 Program.Log.LogInformation("Total Credit added {v}", c);
 
                 return true;
