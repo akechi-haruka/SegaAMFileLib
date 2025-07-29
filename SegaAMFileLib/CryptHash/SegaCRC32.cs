@@ -10,13 +10,15 @@ namespace Haruka.Arcade.SegaAMFileLib.CryptHash {
     public static class SegaCrc32 {
         private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(SegaCrc32));
 
+        private static readonly Crc32Managed INSTANCE = new Crc32Managed(); 
+        
         /// <summary>
         /// Calculates the CRC32 for the given byte array. Remember that if the CRC field is part of this array, it should be zeroed out.
         /// </summary>
         /// <param name="data">The byte array to use.</param>
         /// <returns>The computed CRC32 checksum.</returns>
         public static uint CalcCrc32(byte[] data) {
-            return new Crc32Managed().GetCrc32(data);
+            return INSTANCE.GetCrc32(data);
         }
 
         /// <summary>

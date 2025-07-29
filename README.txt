@@ -13,10 +13,10 @@ What can the library and application be used for?
 * Write and read the following file types:
  - ICF1/ICF2
  - sysfile.dat
+ - dliApp.ini, dliOpt.ini
 
 TODOs:
 * *.app, *.opt
-* DLI
 
 ----------------
 

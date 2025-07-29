@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFView;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet;
@@ -14,12 +15,13 @@ namespace Haruka.Arcade.SegaAMFileCmd {
         private static int Main(string[] args) {
             try {
                 return Parser.Default.ParseArguments
-                        <Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options>(args)
-                    .MapResult<Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, int>(
+                        <Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options>(args)
+                    .MapResult<Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, int>(
                         SysfileSetRunner.Run,
                         SysfileSyncRunner.Run,
                         ICFViewRunner.Run,
                         ICFWriteRunner.Run,
+                        DLIWriteRunner.Run,
                         _ => 1);
             } catch(Exception ex) {
                 if (Log != null) {

@@ -10,7 +10,7 @@
         <Company>Haruka Akechi</Company>
         <AssemblyVersion></AssemblyVersion>
         <RootNamespace>Haruka.Arcade.SegaAMFileLib</RootNamespace>
-        <Version>0.1.3</Version>
+        <Version>0.2.0</Version>
         <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/akechi-haruka/SegaAMFileLib/blob/master/LICENSE.txt</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
