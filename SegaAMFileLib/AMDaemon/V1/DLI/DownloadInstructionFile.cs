@@ -18,26 +18,59 @@ public class DownloadInstructionFile {
     private const string OPTION_SECTION = "OPTIONAL";
     private const string IGNORE_TIME_SECTION = "IGNORE_RELEASE_TIME";
 
+    /// <summary>
+    /// Common data. This specifies download ID, game ID, download times, speeds, URLs and more.
+    /// </summary>
     public CommonInfo Common { get; private set; }
+
+    /// <summary>
+    /// Foreground download settings. Unknown if this is used anywhere. May be null.
+    /// Requires DLFORMAT 5.00+.
+    /// </summary>
     public ForegroundInfo Foreground { get; set; }
+
+    /// <summary>
+    /// Option Image URL. Unknown if this is used anywhere. May be null if this is not an option DLI.
+    /// </summary>
     public OptionImage OptionImg { get; set; }
+
+    /// <summary>
+    /// Option data. Contains option information and download URLs. May be null if this is not an option DLI.
+    /// </summary>
     public Optional Option { get; set; }
 
-    public DownloadInstructionFile(DliType type) {
+    /// <summary>
+    /// Creates a new blank DLI file.
+    /// </summary>
+    public DownloadInstructionFile() {
         Common = new CommonInfo();
     }
-    
-    public DownloadInstructionFile(String filename, DliType type, bool checkDownloadId = true) {
-        LOG.LogInformation("Reading DLI file from {f} of type {t}", filename, type);
-        Read(File.ReadAllLines(filename, Encoding.UTF8), type);
+
+    /// <summary>
+    /// Reads a DLI from file.
+    /// </summary>
+    /// <param name="filePath">The path to the file to read.</param>
+    /// <param name="type">The type of DLI (app, opt).</param>
+    /// <param name="checkDownloadId">Whether or not to validate the download ID in the file.</param>
+    /// <exception cref="IOException">if there is an I/O error, a syntax or logical error reading the DLI file.</exception>
+    public DownloadInstructionFile(String filePath, DliType type, bool checkDownloadId = true) {
+        LOG.LogInformation("Reading DLI file from {f} of type {t}", filePath, type);
+        Read(File.ReadAllLines(filePath, Encoding.UTF8), type);
     }
 
+    /// <summary>
+    /// Reads a DLI from string.
+    /// </summary>
+    /// <param name="content">The lines of the DLI.</param>
+    /// <param name="type">The type of DLI (app, opt).</param>
+    /// <param name="checkDownloadId">Whether or not to validate the download ID in the file.</param>
+    /// <exception cref="IOException">if there is a syntax or logical error reading the DLI file.</exception>
     public DownloadInstructionFile(String[] content, DliType type, bool checkDownloadId = true) {
         LOG.LogInformation("Reading DLI file of type {t}", type);
         Read(content, type);
     }
 
-    public void Read(String[] content, DliType type, bool checkDownloadId = true) {
+    private void Read(String[] content, DliType type, bool checkDownloadId = true) {
         IniParser dli = new IniParser(content);
         if (!dli.HasSection(COMMON_SECTION)) {
             throw new IOException(COMMON_SECTION + " is missing");
@@ -65,7 +98,7 @@ public class DownloadInstructionFile {
         ReadReleaseWithOption(dli);
         Common.PrivateInstallUrls = ReadUrls(dli, COMMON_SECTION, "PRIVATE_INSTALL");
         ReadObsoleteCommon(dli);
-        
+
         OptionImg = new OptionImage();
 
         ReadOptionImage(dli, type);
@@ -75,9 +108,8 @@ public class DownloadInstructionFile {
         ReadOptionSection(dli, type);
 
         if (ReadForegroundSection(dli)) {
-
             Foreground = new ForegroundInfo();
-            
+
             ReadForegroundPartSize(dli);
             ReadForegroundInterval(dli);
             Foreground.ImageUrls = ReadUrls(dli, FOREGROUND_SECTION, "IMAGE");
@@ -94,6 +126,11 @@ public class DownloadInstructionFile {
         }
     }
 
+    /// <summary>
+    /// Writes this DLI to a string.
+    /// </summary>
+    /// <param name="type">The type of DLI (app, opt).</param>
+    /// <returns>A string containing the DLI in .ini form.</returns>
     public String Write(DliType type) {
         IniParser output = new IniParser(new string[0]);
         output.AddSetting(COMMON_SECTION, "DLFORMAT", Common.DlFormat.ToString("F2", CultureInfo.InvariantCulture));
@@ -120,19 +157,21 @@ public class DownloadInstructionFile {
 
         for (int i = 0; i < Common.InstallUrls.Length; i++) {
             string url = Common.InstallUrls[i];
-            output.AddSetting(COMMON_SECTION, "INSTALL" + (i+1), url);
+            output.AddSetting(COMMON_SECTION, "INSTALL" + (i + 1), url);
         }
+
         for (int i = 0; i < Common.ExistUrls.Length; i++) {
             string url = Common.ExistUrls[i];
-            output.AddSetting(COMMON_SECTION, "EXIST" + (i+1), url);
+            output.AddSetting(COMMON_SECTION, "EXIST" + (i + 1), url);
         }
+
         for (int i = 0; i < Common.PrivateInstallUrls.Length; i++) {
             string url = Common.PrivateInstallUrls[i];
-            output.AddSetting(COMMON_SECTION, "PRIVATE_INSTALL" + (i+1), url);
+            output.AddSetting(COMMON_SECTION, "PRIVATE_INSTALL" + (i + 1), url);
         }
-        
+
         output.AddSetting(COMMON_SECTION, "DOWNLOAD_ID", DownloadIdCalculator.GetDownloadId(this));
-        
+
         output.AddSetting(COMMON_SECTION, "IMMEDIATELY_RELEASE", Common.ImmediatelyRelease ? 1 : 0);
         output.AddSetting(COMMON_SECTION, "RELEASE_WITH_OPTION", Common.ReleaseWithOption ? 1 : 0);
 
@@ -143,14 +182,15 @@ public class DownloadInstructionFile {
 
             if (Option != null) {
                 string section = Option.IgnoreReleaseTime ? IGNORE_TIME_SECTION : OPTION_SECTION;
-                
+
                 for (int i = 0; i < Option.InstallUrls.Length; i++) {
                     string url = Option.InstallUrls[i];
-                    output.AddSetting(section, "INSTALL" + (i+1), url);
+                    output.AddSetting(section, "INSTALL" + (i + 1), url);
                 }
+
                 for (int i = 0; i < Option.PrivateInstallUrls.Length; i++) {
                     string url = Option.PrivateInstallUrls[i];
-                    output.AddSetting(section, "PRIVATE_INSTALL" + (i+1), url);
+                    output.AddSetting(section, "PRIVATE_INSTALL" + (i + 1), url);
                 }
             }
         }
@@ -162,7 +202,7 @@ public class DownloadInstructionFile {
             output.AddSetting(FOREGROUND_SECTION, "RELEASE_CONFIRM", Foreground.ReleaseConfirm ? 1 : 0);
             for (int i = 0; i < Foreground.ImageUrls.Length; i++) {
                 string url = Foreground.ImageUrls[i];
-                output.AddSetting(FOREGROUND_SECTION, "IMAGE" + (i+1), url);
+                output.AddSetting(FOREGROUND_SECTION, "IMAGE" + (i + 1), url);
             }
         }
 
@@ -174,6 +214,7 @@ public class DownloadInstructionFile {
         foreach (CloudDownload d in c) {
             sb.Append((char)(((int)d) + '0'));
         }
+
         return sb.ToString();
     }
 
@@ -183,7 +224,7 @@ public class DownloadInstructionFile {
             LOG.LogDebug("RELEASE_CONFIRM is unset");
             return;
         }
-        
+
         if (!Int32.TryParse(str, out int rc)) {
             throw new IOException("RELEASE_CONFIRM format is invalid: " + str);
         }
@@ -208,7 +249,7 @@ public class DownloadInstructionFile {
         if (String.IsNullOrWhiteSpace(str)) {
             throw new IOException("INTERVAL is unset");
         }
-        
+
         if (!Int32.TryParse(str, out int interval)) {
             throw new IOException("INTERVAL format is invalid: " + str);
         }
@@ -219,8 +260,8 @@ public class DownloadInstructionFile {
 
         Foreground.Interval = interval;
     }
-    
-    private static bool IsPowerOfTwo(ulong x){
+
+    private static bool IsPowerOfTwo(ulong x) {
         return (x != 0) && ((x & (x - 1)) == 0);
     }
 
@@ -229,7 +270,7 @@ public class DownloadInstructionFile {
         if (String.IsNullOrWhiteSpace(str)) {
             throw new IOException("PART_SIZE is unset");
         }
-        
+
         if (!UInt32.TryParse(str, out uint size)) {
             throw new IOException("PART_SIZE format is invalid: " + str);
         }
@@ -285,13 +326,13 @@ public class DownloadInstructionFile {
             LOG.LogDebug("Missing " + OPTION_IMAGE_SECTION + " section");
             return;
         }
-        
+
         String str = dli.GetSetting(OPTION_IMAGE_SECTION, "URL");
         if (String.IsNullOrWhiteSpace(str)) {
             LOG.LogWarning(OPTION_IMAGE_SECTION + ", URL is unset");
             return;
         }
-        
+
         if (str.Length >= 256) {
             throw new IOException("URL is too long: " + str);
         }
@@ -324,7 +365,7 @@ public class DownloadInstructionFile {
             LOG.LogDebug("RELEASE_WITH_OPTION is unset");
             return;
         }
-        
+
         if (!Int32.TryParse(str, out int rwo)) {
             throw new IOException("RELEASE_WITH_OPTION format is invalid: " + str);
         }
@@ -342,7 +383,7 @@ public class DownloadInstructionFile {
             LOG.LogDebug("IMMEDIATELY_RELEASE is unset");
             return;
         }
-        
+
         if (!Int32.TryParse(str, out int ir)) {
             throw new IOException("IMMEDIATELY_RELEASE format is invalid: " + str);
         }
@@ -369,7 +410,7 @@ public class DownloadInstructionFile {
 
     private string[] ReadUrls(IniParser dli, string section, string key) {
         List<string> urls = new List<string>();
-        for (int i = 1; ; i++) {
+        for (int i = 1;; i++) {
             String url = dli.GetSetting(section, key + i);
             if (String.IsNullOrWhiteSpace(url)) {
                 break;
@@ -493,14 +534,14 @@ public class DownloadInstructionFile {
         for (int i = 0; i < str.Length; i++) {
             char c = str[i];
             values[i] = c switch {
-                '0' => CloudDownload.ALLOWED,
-                '1' => CloudDownload.NOT_ALLOWED,
-                '2' => CloudDownload.UNKNOWN_VALUE,
+                '0' => CloudDownload.Allowed,
+                '1' => CloudDownload.NotAllowed,
+                '2' => CloudDownload.UnknownValue,
                 _ => throw new IOException("Syntax error in CLOUD: " + str)
             };
         }
 
-        if (values.Count(c => c == CloudDownload.NOT_ALLOWED) == cloudLength) {
+        if (values.Count(c => c == CloudDownload.NotAllowed) == cloudLength) {
             throw new IOException("CLOUD download is never allowed");
         }
 
@@ -604,65 +645,223 @@ public class DownloadInstructionFile {
         Common.DlFormat = dlformat;
     }
 
+    /// <summary>
+    /// Common data. This specifies download ID, game ID, download times, speeds, URLs and more.
+    /// </summary>
     public class CommonInfo {
+        /// <summary>
+        /// The format of this DLI. Observed values are 4.10, 4.20 and 5.00.
+        /// </summary>
         public float DlFormat { get; set; }
+
+        /// <summary>
+        /// The 4-letter SEGA game ID which is being downloaded.
+        /// </summary>
         public string GameId { get; set; }
+
+        /// <summary>
+        /// The timestamp when the contents in this DLI should be downloaded.
+        /// </summary>
         public DateTime OrderTime { get; set; }
+
+        /// <summary>
+        /// The timestamp when the contents in this DLI should be installed.
+        /// </summary>
         public DateTime ReleaseTime { get; set; }
+
+        /// <summary>
+        /// For ISDN, ADSL and broadband respectively the chunk size for which HTTP requests are sent. This array must have exactly 3 elements and values must be a power of 2.
+        /// </summary>
         public uint[] PartSize { get; set; }
+
+        /// <summary>
+        /// The download delay between requests on ISDN.
+        /// </summary>
         public int[] IsdnDownloadInterval { get; set; }
+
+        /// <summary>
+        /// The download delay between requests on ADSL.
+        /// </summary>
         public int[] AdslDownloadInterval { get; set; }
+
+        /// <summary>
+        /// The download delay between requests on Broadband.
+        /// </summary>
         public int[] BroadbandDownloadInterval { get; set; }
-        public CloudDownload[] CloudDownloadAllowed { get; set; }
+
+        /// <summary>
+        /// A 48 element long array, depicting 30 minute segments on a 24-hour clock, when downloading is allowed and when not.
+        /// </summary>
+        public CloudDownload[] CloudDownloadAllowed { get; set; } = new CloudDownload[48];
+
+        /// <summary>
+        /// URL receiving download status reports.
+        /// </summary>
         public string ReportUrl { get; set; }
+
+        /// <summary>
+        /// Interval in seconds until a download status report is sent.
+        /// </summary>
         public int ReportInterval { get; set; }
+
+        /// <summary>
+        /// Unknown use.
+        /// </summary>
         public string GameDescription { get; set; }
+
+        /// <summary>
+        /// If multiple .opt files are present, whether they should be installed one-by-one in sequential order, or all at the same time whenever they are downloaded.
+        /// This must be null on App DLIs.
+        /// </summary>
         public OptReleaseType? ReleaseType { get; set; }
+
+        /// <summary>
+        /// URLs which have files to be downloaded and installed.
+        /// </summary>
         public string[] InstallUrls { get; set; }
+
+        /// <summary>
+        /// URLs to files which must already exist.
+        /// </summary>
         public string[] ExistUrls { get; set; }
+
+        /// <summary>
+        /// Integrity hash of the given URLs.
+        /// </summary>
         public uint DownloadId { get; set; }
+
+        /// <summary>
+        /// Whether to immediately install the downloaded files (true), or wait until next reboot (false).
+        /// Requires DLFORMAT 4.20+.
+        /// </summary>
         public bool ImmediatelyRelease { get; set; }
+
+        /// <summary>
+        /// Whether to install options at the same time with app files (true), or seperately (false).
+        /// Requires DLFORMAT 5.00+
+        /// </summary>
         public bool ReleaseWithOption { get; set; }
+
+        /// <summary>
+        /// URLs for LAN distribution server.
+        /// Requires DLFORMAT 5.00+
+        /// </summary>
         public string[] PrivateInstallUrls { get; set; }
     }
 
+    /// <summary>
+    /// Option Image URL. Unknown if this is used anywhere. May be null if this is not an option DLI.
+    /// </summary>
     public class OptionImage {
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public string Url { get; set; }
     }
 
+    /// <summary>
+    /// Option data. Contains option information and download URLs. May be null if this is not an option DLI.
+    /// </summary>
     public class Optional {
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public bool IgnoreReleaseTime { get; set; }
+
+        /// <summary>
+        /// URLs which have files to be downloaded and installed.
+        /// </summary>
         public string[] InstallUrls { get; set; }
+
+        /// <summary>
+        /// URLs for LAN distribution server.
+        /// Requires DLFORMAT 5.00+
+        /// </summary>
         public string[] PrivateInstallUrls { get; set; }
     }
 
+    /// <summary>
+    /// Foreground download settings. Unknown if this is used anywhere. May be null.
+    /// Requires DLFORMAT 5.00+.
+    /// </summary>
     public class ForegroundInfo {
+        /// <summary>
+        /// The chunk size for which HTTP requests are sent. This array must have exactly 3 elements and values must be a power of 2.
+        /// </summary>
         public uint PartSize { get; set; }
+
+        /// <summary>
+        /// The download delay between requests.
+        /// </summary>
         public int Interval { get; set; }
+
+        /// <summary>
+        /// Unknown. Not spotted in the wild yet.
+        /// </summary>
         public string[] ImageUrls { get; set; }
+
+        /// <summary>
+        /// The timestamp when the contents in this DLI should be downloaded.
+        /// </summary>
         public DateTime OrderTime { get; set; }
+
+        /// <summary>
+        /// Whether or not "installation has to be confirmed on the UI".
+        /// </summary>
         public bool ReleaseConfirm { get; set; }
     }
 
+    /// <summary>
+    /// States for allowing downloads or not to a given time segment.
+    /// <seealso cref="DownloadInstructionFile.CommonInfo.CloudDownloadAllowed"/>
+    /// </summary>
     public enum CloudDownload {
-        ALLOWED, NOT_ALLOWED, UNKNOWN_VALUE
+        /// <summary>
+        /// Download is allowed.
+        /// </summary>
+        Allowed = 0,
+
+        /// <summary>
+        /// Download is not allowed.
+        /// </summary>
+        NotAllowed = 1,
+
+        /// <summary>
+        /// Unknown value. (As in it's unknown what this value (2) does)
+        /// </summary>
+        UnknownValue = 2
     }
 }
 
+/// <summary>
+/// Type of a DLI file.
+/// </summary>
 public enum DliType {
+    /// <summary>
+    /// This DLI file is for option data.
+    /// </summary>
     Opt = 0,
+
+    /// <summary>
+    /// This DLI file is for app data.
+    /// </summary>
     App = 1
 }
 
+/// <summary>
+/// Values for <see cref="DownloadInstructionFile.CommonInfo.ReleaseType"/>
+/// </summary>
 public enum OptReleaseType {
     /// <summary>
     /// If even one of the files specified in the instructions has been downloaded, the file(s) will be installed immediately.
     /// </summary>
     Sequential = 0,
+
     /// <summary>
     /// Installation will only occur when all files have been downloaded.
     /// </summary>
     Bulk = 1,
+
     /// <summary>
     /// Maximum value.
     /// </summary>

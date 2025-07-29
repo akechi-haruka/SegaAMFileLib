@@ -1,13 +1,7 @@
-using System.Runtime.InteropServices;
 using Haruka.Arcade.SegaAMFileLib;
-using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1;
 using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
-using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
-using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
-using Haruka.Arcade.SegaAMFileLib.CryptHash;
 using Haruka.Arcade.SegaAMFileLib.Debugging;
 using Microsoft.Extensions.Logging;
-using Version = Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.Version;
 
 namespace SegaAMFileTests;
 
@@ -30,7 +24,7 @@ public class DLITest {
 
     [Test]
     public void T03_TestWriteReadApp() {
-        DownloadInstructionFile dli = new DownloadInstructionFile(DliType.App);
+        DownloadInstructionFile dli = new DownloadInstructionFile();
         dli.Common.DlFormat = 5.00F;
         dli.Common.GameId = "SXXX";
         dli.Common.ReleaseTime = DateTime.Now;
@@ -40,7 +34,7 @@ public class DLITest {
         dli.Common.AdslDownloadInterval = new int[] { 1000, -1 };
         dli.Common.BroadbandDownloadInterval = new int[] { 1000, -1 };
         dli.Common.CloudDownloadAllowed = new DownloadInstructionFile.CloudDownload[48];
-        Array.Fill(dli.Common.CloudDownloadAllowed, DownloadInstructionFile.CloudDownload.ALLOWED);
+        Array.Fill(dli.Common.CloudDownloadAllowed, DownloadInstructionFile.CloudDownload.Allowed);
         dli.Common.ReportUrl = "http://dummy";
         dli.Common.ReportInterval = 3600;
         dli.Common.GameDescription = "DUMMY";
@@ -54,15 +48,15 @@ public class DLITest {
         dli.Common.DownloadId = DownloadIdCalculator.GetDownloadId(dli);
         string output = dli.Write(DliType.App);
         DownloadInstructionFile dli2 = new DownloadInstructionFile(output.Split("\r\n"), DliType.App);
-        
+
         Assert.That(dli.Common.DlFormat, Is.EqualTo(dli2.Common.DlFormat));
         Assert.That(dli.Common.DownloadId, Is.EqualTo(dli2.Common.DownloadId));
     }
-    
-    
+
+
     [Test]
     public void T04_TestWriteReadOpt() {
-        DownloadInstructionFile dli = new DownloadInstructionFile(DliType.Opt);
+        DownloadInstructionFile dli = new DownloadInstructionFile();
         dli.Common.DlFormat = 5.00F;
         dli.Common.GameId = "SXXX";
         dli.Common.ReleaseTime = DateTime.Now;
@@ -72,11 +66,11 @@ public class DLITest {
         dli.Common.AdslDownloadInterval = new int[] { 1000, -1 };
         dli.Common.BroadbandDownloadInterval = new int[] { 1000, -1 };
         dli.Common.CloudDownloadAllowed = new DownloadInstructionFile.CloudDownload[48];
-        Array.Fill(dli.Common.CloudDownloadAllowed, DownloadInstructionFile.CloudDownload.ALLOWED);
+        Array.Fill(dli.Common.CloudDownloadAllowed, DownloadInstructionFile.CloudDownload.Allowed);
         dli.Common.ReportUrl = "http://dummy";
         dli.Common.ReportInterval = 3600;
         dli.Common.GameDescription = "DUMMY";
-        dli.Common.ReleaseType = OptReleaseType.Sequential; 
+        dli.Common.ReleaseType = OptReleaseType.Sequential;
         dli.Common.InstallUrls = new string[] { "http://dummy/SXXX_O001_20200101010101_0.opt" };
         dli.Common.ExistUrls = new string[] {
             "http://dummy/AAV_0001.00.00_20200101010101_0.pack",
@@ -91,9 +85,8 @@ public class DLITest {
 
         string output = dli.Write(DliType.Opt);
         DownloadInstructionFile dli2 = new DownloadInstructionFile(output.Split("\r\n"), DliType.Opt);
-        
+
         Assert.That(dli.Common.DlFormat, Is.EqualTo(dli2.Common.DlFormat));
         Assert.That(dli.Common.DownloadId, Is.EqualTo(dli2.Common.DownloadId));
     }
-    
 }

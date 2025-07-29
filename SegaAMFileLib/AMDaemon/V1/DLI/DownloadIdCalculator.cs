@@ -11,13 +11,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
 public static class DownloadIdCalculator {
     private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(DownloadIdCalculator));
 
-    /// <summary>
-    /// Calculates the DOWNLOAD_ID for the given download paths.
-    /// </summary>
-    /// <param name="filenames">The list of .app/.opt/.pack files that are supposed to be downloaded.</param>
-    /// <returns>The value for DOWNLOAD_ID.</returns>
-    /// <exception cref="ArgumentException">If <see cref="filenames"/> is null or any of it's values are null.</exception>
-    public static uint GetDownloadId(params String[] filenames) {
+    private static uint GetDownloadId(params String[] filenames) {
         ArgumentNullException.ThrowIfNull(filenames);
         foreach (string t in filenames) {
             ArgumentNullException.ThrowIfNull(t);
@@ -34,7 +28,14 @@ public static class DownloadIdCalculator {
         return ret;
     }
 
+    /// <summary>
+    /// Calculates the download ID for the given DLI. This is based on EXIST##, INSTALL## and PRIVATE_INSTALL##.
+    /// </summary>
+    /// <param name="dli">The DLI to use.</param>
+    /// <seealso cref="DownloadInstructionFile.CommonInfo.DownloadId"/>
+    /// <returns>The value for DOWNLOAD_ID.</returns>
     public static uint GetDownloadId(DownloadInstructionFile dli) {
+        ArgumentNullException.ThrowIfNull(dli);
         return GetDownloadId(dli.Common.InstallUrls.Select(url => "0" + url.Split("/").Last())
             .Concat(dli.Common.ExistUrls.Select(url => "1" + url.Split("/").Last()))
             .Concat(dli.Common.PrivateInstallUrls.Select(url => "2" + url.Split("/").Last()))
