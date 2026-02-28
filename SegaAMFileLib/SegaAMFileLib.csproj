@@ -37,15 +37,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="segaamfilelib.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="segaamfilelib.debug.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\Haruka.Common\Haruka.Common.csproj"/>
     </ItemGroup>
     
