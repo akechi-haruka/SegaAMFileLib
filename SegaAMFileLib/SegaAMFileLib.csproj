@@ -12,7 +12,6 @@
         <RootNamespace>Haruka.Arcade.SegaAMFileLib</RootNamespace>
         <Version>0.2.0</Version>
         <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/akechi-haruka/SegaAMFileLib/blob/master/LICENSE.txt</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
         <PackageTags>Arcade;File Formats</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

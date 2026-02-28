@@ -259,4 +259,12 @@ public class SysData {
 
         return data;
     }
+
+    /// <summary>
+    /// Creates a new blank sysfile.dat.
+    /// </summary>
+    /// <returns>a blank sysfile.dat</returns>
+    public static SysData Create() {
+        return new SysData(new byte[FILE_LENGTH]);
+    }
 }
