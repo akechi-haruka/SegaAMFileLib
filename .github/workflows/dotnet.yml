@@ -12,10 +12,12 @@ jobs:
     permissions: write-all
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -29,13 +31,13 @@ jobs:
          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         run: |
-          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
+          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows10.0.18362.0
           dotnet publish .\SEGAAMFileCmd\SEGAAMFileCmd.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileCmd\Properties\PublishProfiles\SegaAMFileCmd.pubxml
-      - name: Upload Lib NET 8
+      - name: Upload Lib NET 10
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: SegaAMFileLib-net8-latest
-          path: SEGAAMFileLib/publish/net8
+          name: SegaAMFileLib-net10-latest
+          path: SEGAAMFileLib/publish/net10
           if-no-files-found: error
           overwrite: true
       - name: Upload Cmd
