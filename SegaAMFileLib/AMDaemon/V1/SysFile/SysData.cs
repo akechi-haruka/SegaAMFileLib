@@ -1,8 +1,7 @@
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
 using Haruka.Arcade.SegaAMFileLib.Misc;
+using Haruka.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
@@ -11,7 +10,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
 /// Class holding values that are contained in an instance of sysfile.dat.
 /// </summary>
 public class SysData {
-    private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(SysData));
+    private static readonly ILogger LOG = Log.GetOrCreate("Sysf");
 
     private const uint FILE_LENGTH = 0x6000;
     private const uint OFFSET_CRC = 0;
@@ -52,54 +51,67 @@ public class SysData {
     /// Aime Reader data.
     /// </summary>
     public DataRecordAime Aime;
+
     /// <summary>
     /// AimePay history data.
     /// </summary>
     public DataRecordAimePay AimePay;
+
     /// <summary>
     /// Credit and Bookkeeping data.
     /// </summary>
     public DataRecordBackup Backup;
+
     /// <summary>
     /// Credit configuration data.
     /// </summary>
     public DataRecordCredit Credit;
+
     /// <summary>
     /// Credit clear history data.
     /// </summary>
     public DataRecordCreditClear CreditClear;
+
     /// <summary>
     /// Dip switch data.
     /// </summary>
     public DataRecordDipsw Dipsw;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public DataRecordDisplay Display;
+
     /// <summary>
     /// E-Money authentication and history data.
     /// </summary>
     public DataRecordEmoney Emoney;
+
     /// <summary>
     /// System error history data.
     /// </summary>
     public DataRecordErrorLog ErrorLog;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public DataRecordLocalize Localize;
+
     /// <summary>
     /// Network configuration data for adapter 1.
     /// </summary>
     public DataRecordNetwork Network0;
+
     /// <summary>
     /// Network configuration data for adapter 2.
     /// </summary>
     public DataRecordNetwork Network1;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public DataRecordTimezone Timezone;
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -210,7 +222,7 @@ public class SysData {
         if (records.Count == 0) {
             throw new ArgumentException("no such record: " + typeof(T));
         }
-        
+
         LOG.LogTrace("Updating record " + typeof(T) + " in slot " + slot);
 
         BackupRecordDefinition record = records[slot];
@@ -232,20 +244,19 @@ public class SysData {
         if (record.HasCrc) {
             byte[] crcableBytes = new byte[struc.Length - 4];
             Array.Copy(struc, OFFSET_CRC + sizeof(uint), crcableBytes, 0, struc.Length - sizeof(uint));
-            
+
             uint crcnum = SegaCrc32.CalcCrc32(crcableBytes);
             byte[] crc = BitConverter.GetBytes(crcnum);
-            
+
             Array.Copy(crc, 0, struc, OFFSET_CRC, crc.Length);
-            
+
             LOG.LogDebug("New CRC for " + record.Structure + ": 0x" + crcnum.ToString("X2"));
         }
 
         Array.Copy(struc, 0, data, record.StartAddress, record.Size);
-        
+
         LOG.LogTrace("Updated " + record.Structure + " in SysData");
 
         return data;
     }
-    
 }

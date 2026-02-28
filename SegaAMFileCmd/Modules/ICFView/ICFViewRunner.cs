@@ -10,17 +10,17 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             Program.SetGlobalOptions(opts);
 
             if (!File.Exists(opts.FileName)) {
-                Program.Log.LogError("Specified file not found: {f}", opts.FileName);
+                Program.CmdLog.LogError("Specified file not found: {f}", opts.FileName);
                 return 1;
             }
 
             if (opts.Key == null && !File.Exists(KEY_FILE_NAME)) {
-                Program.Log.LogError("Neither an encryption key was specified, nor was {f} found in the program directory.", KEY_FILE_NAME);
+                Program.CmdLog.LogError("Neither an encryption key was specified, nor was {f} found in the program directory.", KEY_FILE_NAME);
                 return 1;
             }
 
             if (opts.Iv == null && !File.Exists(IV_FILE_NAME)) {
-                Program.Log.LogError("Neither an encryption IV was specified, nor was {f} found in the program directory.", IV_FILE_NAME);
+                Program.CmdLog.LogError("Neither an encryption IV was specified, nor was {f} found in the program directory.", IV_FILE_NAME);
                 return 1;
             }
 
@@ -31,7 +31,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
                 try {
                     key = Convert.FromHexString(opts.Key);
                 } catch {
-                    Program.Log.LogError("Bad format for passed encryption key.");
+                    Program.CmdLog.LogError("Bad format for passed encryption key.");
                     return 1;
                 }
             } else {
@@ -42,7 +42,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
                 try {
                     iv = Convert.FromHexString(opts.Iv);
                 } catch {
-                    Program.Log.LogError("Bad format for passed encryption IV.");
+                    Program.CmdLog.LogError("Bad format for passed encryption IV.");
                     return 1;
                 }
             } else {
@@ -54,12 +54,12 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             InstallationConfigurationFile icf = new InstallationConfigurationFile(data, key, iv);
 
             ICFHeaderRecord header = icf.Header;
-            Program.Log.LogInformation("App ID: {a}", header.GetAppId());
-            Program.Log.LogInformation("Platform ID: {i}{g}", header.GetPlatformId(false), header.platformGeneration);
+            Program.CmdLog.LogInformation("App ID: {a}", header.GetAppId());
+            Program.CmdLog.LogInformation("Platform ID: {i}{g}", header.GetPlatformId(false), header.platformGeneration);
 
             for (int i = 0; i < icf.GetRecordCount(); i++) {
                 ICFEntryRecord record = icf.GetRecord(i);
-                Program.Log.LogInformation("Record " + i);
+                Program.CmdLog.LogInformation("Record " + i);
                 PrintRecordInformation(record);
             }
 
@@ -68,14 +68,14 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
 
         private static void PrintRecordInformation(ICFEntryRecord? record) {
             if (record == null) {
-                Program.Log.LogWarning("Record not found");
+                Program.CmdLog.LogWarning("Record not found");
                 return;
             }
-            
-            Program.Log.LogInformation("- Record Type: {v}", record.Value.typeFlags);
-            Program.Log.LogInformation("- Required Version: {v}", record.Value.requiredVersion);
-            Program.Log.LogInformation("- Version: {v}", record.Value.version);
-            Program.Log.LogInformation("- Date: {d}", record.Value.timestamp);
+
+            Program.CmdLog.LogInformation("- Record Type: {v}", record.Value.typeFlags);
+            Program.CmdLog.LogInformation("- Required Version: {v}", record.Value.requiredVersion);
+            Program.CmdLog.LogInformation("- Version: {v}", record.Value.version);
+            Program.CmdLog.LogInformation("- Date: {d}", record.Value.timestamp);
         }
     }
 }

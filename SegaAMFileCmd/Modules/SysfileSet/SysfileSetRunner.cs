@@ -3,13 +3,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
     class SysfileSetRunner {
-        
-
         internal static int Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             if (!File.Exists(opts.FileName)) {
-                Program.Log.LogError("Specified file not found: {f}", opts.FileName);
+                Program.CmdLog.LogError("Specified file not found: {f}", opts.FileName);
                 return 1;
             }
 
@@ -30,15 +28,15 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
                     sysfile.Credit.creditConfig.operation = opts.Value != 0 ? CreditOperation.OPERATION_COIN : CreditOperation.OPERATION_DEFAULT;
                     break;
             }
-            
-            Program.Log.LogInformation("Success: {a}", opts.Action);
+
+            Program.CmdLog.LogInformation("Success: {a}", opts.Action);
 
             data = SysData.UpdateRecord(data, sysfile.Backup);
             data = SysData.UpdateRecord(data, sysfile.Credit);
             File.WriteAllBytes(opts.FileName, data);
-            
-            Program.Log.LogInformation("File saved to: {f}", opts.FileName);
-            
+
+            Program.CmdLog.LogInformation("File saved to: {f}", opts.FileName);
+
             return 0;
         }
     }

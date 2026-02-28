@@ -1,6 +1,6 @@
 using System.Text;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
+using Haruka.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
@@ -9,7 +9,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
 /// Helper class to calculate the DOWNLOAD_ID field in a DLI.
 /// </summary>
 public static class DownloadIdCalculator {
-    private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(DownloadIdCalculator));
+    private static readonly ILogger LOG = Log.GetOrCreate("DLID");
 
     private static uint GetDownloadId(params String[] filenames) {
         ArgumentNullException.ThrowIfNull(filenames);

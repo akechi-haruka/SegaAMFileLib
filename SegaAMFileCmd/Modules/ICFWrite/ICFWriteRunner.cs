@@ -13,12 +13,12 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
             Program.SetGlobalOptions(opts);
 
             if (opts.Key == null && !File.Exists(KEY_FILE_NAME)) {
-                Program.Log.LogError("Neither an encryption key was specified, nor was {f} found in the program directory.", KEY_FILE_NAME);
+                Program.CmdLog.LogError("Neither an encryption key was specified, nor was {f} found in the program directory.", KEY_FILE_NAME);
                 return 1;
             }
 
             if (opts.Iv == null && !File.Exists(IV_FILE_NAME)) {
-                Program.Log.LogError("Neither an encryption IV was specified, nor was {f} found in the program directory.", IV_FILE_NAME);
+                Program.CmdLog.LogError("Neither an encryption IV was specified, nor was {f} found in the program directory.", IV_FILE_NAME);
                 return 1;
             }
 
@@ -29,7 +29,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
                 try {
                     key = Convert.FromHexString(opts.Key);
                 } catch {
-                    Program.Log.LogError("Bad format for passed encryption key.");
+                    Program.CmdLog.LogError("Bad format for passed encryption key.");
                     return 1;
                 }
             } else {
@@ -40,7 +40,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
                 try {
                     iv = Convert.FromHexString(opts.Iv);
                 } catch {
-                    Program.Log.LogError("Bad format for passed encryption IV.");
+                    Program.CmdLog.LogError("Bad format for passed encryption IV.");
                     return 1;
                 }
             } else {
@@ -48,31 +48,31 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
             }
 
             if (opts.GameId.Length != 4) {
-                Program.Log.LogError("Bad length for game ID: {i}", opts.GameId);
+                Program.CmdLog.LogError("Bad length for game ID: {i}", opts.GameId);
                 return 1;
             }
 
             if (opts.PlatformId.Length != 4) {
-                Program.Log.LogError("Bad length for platform ID: {i}", opts.GameId);
+                Program.CmdLog.LogError("Bad length for platform ID: {i}", opts.GameId);
                 return 1;
             }
 
             if (opts.PlatformId[^1] < '0' || opts.PlatformId[^1] > '9') {
-                Program.Log.LogError("Final character of platform ID must be a number: {i}", opts.GameId);
+                Program.CmdLog.LogError("Final character of platform ID must be a number: {i}", opts.GameId);
                 return 1;
             }
 
             if (!System.Version.TryParse(opts.Version, out System.Version parsedVersion)) {
-                Program.Log.LogError("Failed to read given version number: " + opts.Version);
+                Program.CmdLog.LogError("Failed to read given version number: " + opts.Version);
                 return 1;
             }
 
             DateTime timestamp = DateTime.Now;
             if (!String.IsNullOrWhiteSpace(opts.Timestamp)) {
                 if (!DateTime.TryParse(opts.Timestamp, out timestamp)) {
-                    Program.Log.LogError("Failed to parse given timestamp: " + opts.Timestamp);
+                    Program.CmdLog.LogError("Failed to parse given timestamp: " + opts.Timestamp);
                     return 1;
-                }    
+                }
             }
 
             InstallationConfigurationFile icf = new InstallationConfigurationFile();
@@ -118,21 +118,21 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
             data = SegaAes.Encrypt(data, key, iv);
 
             File.WriteAllBytes(opts.FileName, data);
-            
-            Program.Log.LogInformation("ICF written to: {f}", opts.FileName);
-            
+
+            Program.CmdLog.LogInformation("ICF written to: {f}", opts.FileName);
+
             return 0;
         }
 
         private static void PrintRecordInformation(ICFEntryRecord? record) {
             if (record == null) {
-                Program.Log.LogWarning("Record not found");
+                Program.CmdLog.LogWarning("Record not found");
                 return;
             }
 
-            Program.Log.LogInformation("- Required Version: {v}", record.Value.requiredVersion);
-            Program.Log.LogInformation("- Version: {v}", record.Value.version);
-            Program.Log.LogInformation("- Date: {d}", record.Value.timestamp);
+            Program.CmdLog.LogInformation("- Required Version: {v}", record.Value.requiredVersion);
+            Program.CmdLog.LogInformation("- Version: {v}", record.Value.version);
+            Program.CmdLog.LogInformation("- Date: {d}", record.Value.timestamp);
         }
     }
 }

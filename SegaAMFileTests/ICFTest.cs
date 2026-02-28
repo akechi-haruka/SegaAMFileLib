@@ -1,10 +1,9 @@
 using System.Runtime.InteropServices;
-using Haruka.Arcade.SegaAMFileLib;
 using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1;
 using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
-using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
+using Haruka.Common;
+using Haruka.Common.Configuration;
 using Microsoft.Extensions.Logging;
 using Version = Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.Version;
 
@@ -13,8 +12,9 @@ namespace SegaAMFileTests;
 public class ICFTest {
     [SetUp]
     public void Setup() {
-        Logging.Initialize(Configuration.Initialize());
-        Logging.Main.LogDebug(Environment.CurrentDirectory);
+        AppConfig.Initialize();
+        Log.Initialize();
+        Log.Main.LogDebug(Environment.CurrentDirectory);
     }
 
     private static void CheckSize(Type struc, int expected) {
@@ -47,6 +47,7 @@ public class ICFTest {
             Assert.Inconclusive("Failed reading one of the required test files: " + ex);
             return;
         }
+
         InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, key, iv);
         ValidateICF(icf);
     }
@@ -62,13 +63,13 @@ public class ICFTest {
             Assert.Inconclusive("Failed reading one of the required test files: " + ex);
             return;
         }
+
         InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, key, iv);
         ValidateICF(icf);
     }
 
     [Test]
     public void T04_WriteReadCheck() {
-
         const String gameId = "SDEM";
         const String platformId = "AAV1";
         Version ver = new Version() {
@@ -76,7 +77,7 @@ public class ICFTest {
             minor = 66,
             build = 14
         };
-        
+
         byte[] key, iv;
         try {
             key = File.ReadAllBytes("TestFiles\\icf_key.bin");
@@ -91,7 +92,7 @@ public class ICFTest {
         icf.Header.SetAppId(gameId);
         icf.Header.SetPlatformId(platformId.Substring(0, 3));
         icf.Header.platformGeneration = Convert.ToByte(platformId.Substring(3));
-        
+
         Timestamp time = Timestamp.Now();
 
         ICFEntryRecord systemEntry = new ICFEntryRecord {
@@ -110,27 +111,26 @@ public class ICFTest {
             version = ver
         };
         icf.AddRecord(appEntry);
-        
+
         Assert.That(icf.Header.entryCount, Is.EqualTo(2));
         Assert.That(icf.Header.dataSize, Is.EqualTo(3 * 0x40));
 
         byte[] data = icf.Save();
-        
+
         File.WriteAllBytes("TestFiles\\ICF1_out_plain", data);
-        
+
         data = SegaAes.Encrypt(data, key, iv);
-        
+
         File.WriteAllBytes("TestFiles\\ICF1_out", data);
 
         InstallationConfigurationFile icf2 = new InstallationConfigurationFile(data, key, iv);
-        
-        Logging.Main.LogInformation(icf2.GetAppRecord().Value.version.ToString());
-        Logging.Main.LogInformation(icf2.GetAppRecord().Value.timestamp.ToString());
-        
+
+        Log.Main.LogInformation(icf2.GetAppRecord().Value.version.ToString());
+        Log.Main.LogInformation(icf2.GetAppRecord().Value.timestamp.ToString());
+
         Assert.That(icf2.GetRecordCount(), Is.EqualTo(icf.GetRecordCount()));
         Assert.That(icf2.GetSystemRecord(), Is.EqualTo(icf.GetSystemRecord()));
         Assert.That(icf2.GetAppRecord(), Is.EqualTo(icf.GetAppRecord()));
         Assert.That(icf2.GetAppRecord().Value.version.ToString(), Is.EqualTo(icf.GetAppRecord().Value.version.ToString()));
     }
-    
 }

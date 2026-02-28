@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
 using Haruka.Arcade.SegaAMFileLib.Misc;
+using Haruka.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
@@ -10,7 +10,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
 /// Class to read and write Download Instrucion Files. (sic)
 /// </summary>
 public class DownloadInstructionFile {
-    private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(DownloadInstructionFile));
+    private static readonly ILogger LOG = Log.GetOrCreate("DLI ");
 
     private const string COMMON_SECTION = "COMMON";
     private const string FOREGROUND_SECTION = "FOREGROUND";
@@ -469,7 +469,7 @@ public class DownloadInstructionFile {
     private void ReadGameDesc(IniParser dli) {
         String str = dli.GetSetting(COMMON_SECTION, "GAME_DESC");
         if (String.IsNullOrWhiteSpace(str)) {
-            Logging.Main.LogWarning("GAME_DESC is unset");
+            LOG.LogWarning("GAME_DESC is unset");
             return;
         }
 
@@ -483,7 +483,7 @@ public class DownloadInstructionFile {
     private void ReadReportInterval(IniParser dli) {
         String str = dli.GetSetting(COMMON_SECTION, "REPORT_INTERVAL");
         if (String.IsNullOrWhiteSpace(str)) {
-            Logging.Main.LogWarning("REPORT_INTERVAL is unset");
+            LOG.LogWarning("REPORT_INTERVAL is unset");
             Common.ReportInterval = 3600;
             return;
         }

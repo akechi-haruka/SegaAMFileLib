@@ -1,8 +1,7 @@
 using System.Runtime.InteropServices;
-using Haruka.Arcade.SegaAMFileLib;
-using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1;
 using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
+using Haruka.Common;
+using Haruka.Common.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace SegaAMFileTests;
@@ -10,12 +9,13 @@ namespace SegaAMFileTests;
 public class SysDataTest {
     [SetUp]
     public void Setup() {
-        Logging.Initialize(Configuration.Initialize());
+        AppConfig.Initialize();
+        Log.Initialize();
     }
 
     [Test]
     public void T01_Structs() {
-        Logging.Main.LogDebug(Marshal.SizeOf(typeof(ErrorBody)).ToString("X2"));
+        Log.Main.LogDebug(Marshal.SizeOf(typeof(ErrorBody)).ToString("X2"));
         foreach (BackupRecordDefinition record in SysData.RECORDS) {
             int calculated = Marshal.SizeOf(record.Structure);
             uint expected = record.Size;
@@ -41,5 +41,4 @@ public class SysDataTest {
         Assert.That(data.Backup.creditData.player[0].credit, Is.EqualTo(12));
         Assert.That(data.Emoney.availableBrandList, Is.EqualTo(5));
     }
-    
 }

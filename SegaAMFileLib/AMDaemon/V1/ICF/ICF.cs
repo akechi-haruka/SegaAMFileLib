@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
 using Haruka.Arcade.SegaAMFileLib.Misc;
+using Haruka.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
@@ -10,7 +10,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
 /// Class for reading and writing ICF files, most commonly known as ICF1 and ICF2.
 /// </summary>
 public class InstallationConfigurationFile {
-    private static readonly ILogger LOG = Logging.Factory.CreateLogger(nameof(InstallationConfigurationFile));
+    private static readonly ILogger LOG = Log.GetOrCreate("ICF ");
 
     /// <summary>
     /// The header of the ICF data, holding CRC, size, game and platform information.

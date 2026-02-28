@@ -4,28 +4,29 @@ using Haruka.Arcade.SegaAMFileCmd.Modules.ICFView;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync;
-using Haruka.Arcade.SegaAMFileLib;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
+using Haruka.Common;
+using Haruka.Common.Configuration;
 using Microsoft.Extensions.Logging;
+using Options = Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet.Options;
 
 namespace Haruka.Arcade.SegaAMFileCmd {
     static class Program {
-        public static ILogger Log;
+        public static ILogger CmdLog;
 
         private static int Main(string[] args) {
             try {
                 return Parser.Default.ParseArguments
-                        <Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options>(args)
-                    .MapResult<Modules.SysfileSet.Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, int>(
+                        <Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options>(args)
+                    .MapResult<Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, int>(
                         SysfileSetRunner.Run,
                         SysfileSyncRunner.Run,
                         ICFViewRunner.Run,
                         ICFWriteRunner.Run,
                         DLIWriteRunner.Run,
                         _ => 1);
-            } catch(Exception ex) {
-                if (Log != null) {
-                    Log.LogCritical(ex, "An error has occurred");
+            } catch (Exception ex) {
+                if (CmdLog != null) {
+                    CmdLog.LogCritical(ex, "An error has occurred");
                 } else {
                     Console.WriteLine("An error has occurred");
                     Console.WriteLine(ex);
@@ -33,14 +34,14 @@ namespace Haruka.Arcade.SegaAMFileCmd {
 
                 return Int32.MinValue;
             } finally {
-                Log?.LogInformation("Exiting");
+                CmdLog?.LogInformation("Exiting");
             }
         }
 
         internal static void SetGlobalOptions(GlobalOptions options) {
-            Logging.Initialize(Configuration.Initialize(), options.Silent, options.LogFile);
-            Log = Logging.Factory.CreateLogger(nameof(Program));
+            AppConfig.Initialize();
+            Log.Initialize(options.Silent);
+            CmdLog = Log.GetOrCreate("Cmd ");
         }
-
     }
 }

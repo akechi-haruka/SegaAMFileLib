@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegaAMFileTests", "SegaAMFi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegaAMFileCmd", "SegaAMFileCmd\SegaAMFileCmd.csproj", "{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{4BE4874A-FEE6-46FB-B098-183BC4047798}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Haruka.Common", "Haruka.Common\Haruka.Common.csproj", "{3FD9AA0A-CBAE-4BD0-A22C-277FCC34B1A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,12 @@ Global
 		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{113B7B8B-3ECD-4342-ACC9-7FA8EE24694D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FD9AA0A-CBAE-4BD0-A22C-277FCC34B1A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FD9AA0A-CBAE-4BD0-A22C-277FCC34B1A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FD9AA0A-CBAE-4BD0-A22C-277FCC34B1A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FD9AA0A-CBAE-4BD0-A22C-277FCC34B1A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3FD9AA0A-CBAE-4BD0-A22C-277FCC34B1A7} = {4BE4874A-FEE6-46FB-B098-183BC4047798}
 	EndGlobalSection
 EndGlobal

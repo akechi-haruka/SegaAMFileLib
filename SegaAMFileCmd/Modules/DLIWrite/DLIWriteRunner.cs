@@ -33,7 +33,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
 
             File.WriteAllText(opts.OutputFile, output);
 
-            Program.Log.LogInformation("DLI written to: {f}", opts.OutputFile);
+            Program.CmdLog.LogInformation("DLI written to: {f}", opts.OutputFile);
 
             return 0;
         }

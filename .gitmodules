@@ -1,0 +1,4 @@
+[submodule "Haruka.Common"]
+	path = Haruka.Common
+	url = https://github.com/akechi-haruka/Haruka.Common
+	branch = master

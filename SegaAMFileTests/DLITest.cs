@@ -1,6 +1,6 @@
-using Haruka.Arcade.SegaAMFileLib;
 using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.DLI;
-using Haruka.Arcade.SegaAMFileLib.Debugging;
+using Haruka.Common;
+using Haruka.Common.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace SegaAMFileTests;
@@ -8,8 +8,9 @@ namespace SegaAMFileTests;
 public class DLITest {
     [SetUp]
     public void Setup() {
-        Logging.Initialize(Configuration.Initialize());
-        Logging.Main.LogDebug(Environment.CurrentDirectory);
+        AppConfig.Initialize();
+        Log.Initialize();
+        Log.Main.LogDebug(Environment.CurrentDirectory);
     }
 
     [Test]
