@@ -28,12 +28,19 @@ public class InstallationConfigurationFile {
     }
 
     /// <summary>
-    /// Reads a ICF file from the given (decrypted) data.
+    /// Reads a ICF file from the given data.
     /// </summary>
     /// <param name="data">The raw content of an ICF file (retrieved by <see cref="File.ReadAllBytes"/> or similar)</param>
+    /// <param name="encryption">The <see cref="EncryptionParameters"/> to use from the current <see cref="EncryptionEnvironment"/>, or null if <see cref="data"/> is not encrypted.</param>
     /// <exception cref="ArgumentException">If the data array is invalid</exception>
     /// <exception cref="IOException">If there is an error while deserializing data</exception>
-    public InstallationConfigurationFile(byte[] data) : this() {
+    public InstallationConfigurationFile(byte[] data, EncryptionParameters encryption = null) : this() {
+        ArgumentNullException.ThrowIfNull(data);
+
+        if (encryption != null) {
+            data = SegaAes.DecryptFromEnv(data, encryption);
+        }
+
         int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
         int entryLen = Marshal.SizeOf<ICFEntryRecord>();
 
@@ -70,17 +77,6 @@ public class InstallationConfigurationFile {
             LOG.LogError(error);
             throw new IOException(error);
         }
-    }
-
-    /// <summary>
-    /// Reads a ICF file from the given encrypted data.
-    /// </summary>
-    /// <param name="data">The encrypted content of an ICF file (retrieved by <see cref="File.ReadAllBytes"/> or similar)</param>
-    /// <param name="key">The 16-byte long key used to decrypt the data.</param>
-    /// <param name="iv">The 16-byte long IV used to decrypt the data.</param>
-    /// <exception cref="ArgumentException">If the data array is invalid</exception>
-    /// <exception cref="IOException">If there is an error while deserializing data</exception>
-    public InstallationConfigurationFile(byte[] data, byte[] key, byte[] iv) : this(SegaAes.Decrypt(data, key, iv)) {
     }
 
     private static void CheckCrc(byte[] data, string name) {

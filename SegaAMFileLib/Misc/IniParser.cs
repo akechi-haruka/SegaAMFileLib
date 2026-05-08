@@ -157,4 +157,8 @@ class IniParser {
     public bool HasSection(string section) {
         return keyPairs.Keys.Cast<SectionPair>().Any(s => s.Section.Equals(section));
     }
+
+    public IEnumerable<string> GetSections() {
+        return keyPairs.Keys.Cast<SectionPair>().Select(s => s.Section).Distinct();
+    }
 }

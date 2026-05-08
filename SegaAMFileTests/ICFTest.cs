@@ -15,6 +15,7 @@ public class ICFTest {
         AppConfig.Initialize();
         Log.Initialize();
         Log.Main.LogDebug(Environment.CurrentDirectory);
+        EncryptionEnvironment.Initialize("TestFiles\\keys.txt");
     }
 
     private static void CheckSize(Type struc, int expected) {
@@ -38,33 +39,29 @@ public class ICFTest {
 
     [Test]
     public void T02_Read_1() {
-        byte[] rawFile, key, iv;
+        byte[] rawFile;
         try {
             rawFile = File.ReadAllBytes("TestFiles\\ICF1");
-            key = File.ReadAllBytes("TestFiles\\icf_key.bin");
-            iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
         } catch (Exception ex) {
             Assert.Inconclusive("Failed reading one of the required test files: " + ex);
             return;
         }
 
-        InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, key, iv);
+        InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, EncryptionEnvironment.Icf);
         ValidateICF(icf);
     }
 
     [Test]
     public void T03_Read_2() {
-        byte[] rawFile, key, iv;
+        byte[] rawFile;
         try {
             rawFile = File.ReadAllBytes("TestFiles\\ICF1");
-            key = File.ReadAllBytes("TestFiles\\icf_key.bin");
-            iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
         } catch (Exception ex) {
             Assert.Inconclusive("Failed reading one of the required test files: " + ex);
             return;
         }
 
-        InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, key, iv);
+        InstallationConfigurationFile icf = new InstallationConfigurationFile(rawFile, EncryptionEnvironment.Icf);
         ValidateICF(icf);
     }
 
@@ -77,15 +74,6 @@ public class ICFTest {
             minor = 66,
             build = 14
         };
-
-        byte[] key, iv;
-        try {
-            key = File.ReadAllBytes("TestFiles\\icf_key.bin");
-            iv = File.ReadAllBytes("TestFiles\\icf_iv.bin");
-        } catch (Exception ex) {
-            Assert.Inconclusive("Failed reading one of the required test files: " + ex);
-            return;
-        }
 
         InstallationConfigurationFile icf = new InstallationConfigurationFile();
 
@@ -119,11 +107,11 @@ public class ICFTest {
 
         File.WriteAllBytes("TestFiles\\ICF1_out_plain", data);
 
-        data = SegaAes.Encrypt(data, key, iv);
+        data = SegaAes.Encrypt(data, EncryptionEnvironment.Icf.Key, EncryptionEnvironment.Icf.Iv);
 
         File.WriteAllBytes("TestFiles\\ICF1_out", data);
 
-        InstallationConfigurationFile icf2 = new InstallationConfigurationFile(data, key, iv);
+        InstallationConfigurationFile icf2 = new InstallationConfigurationFile(data, EncryptionEnvironment.Icf);
 
         Log.Main.LogInformation(icf2.GetAppRecord().Value.version.ToString());
         Log.Main.LogInformation(icf2.GetAppRecord().Value.timestamp.ToString());

@@ -6,6 +6,10 @@ riderModule.iml
 *.csproj.DotSettings
 *.sln.DotSettings.user
 
-icf_key.bin
-icf_iv.bin
+keys.txt
 tmp/
+*.app
+*.opt
+*.pack
+*.ntfs
+*.exfat

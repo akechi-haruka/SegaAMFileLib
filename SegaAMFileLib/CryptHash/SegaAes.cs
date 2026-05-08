@@ -6,7 +6,18 @@ namespace Haruka.Arcade.SegaAMFileLib.CryptHash;
 /// AES algorithm used by SEGA for certain files.
 /// </summary>
 public static class SegaAes {
-    
+    /// <summary>
+    /// Decrypts the given byte array.
+    /// </summary>
+    /// <param name="data">The data to decrypt.</param>
+    /// <param name="param">The <see cref="EncryptionParameters"/> from the current <see cref="EncryptionEnvironment"/>.</param>
+    /// <returns>The decrypted data (same length as input array)</returns>
+    public static byte[] DecryptFromEnv(byte[] data, EncryptionParameters param) {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(param);
+        return Decrypt(data, param.Key, param.Iv);
+    }
+
     /// <summary>
     /// Decrypts the given byte array.
     /// </summary>
@@ -15,6 +26,9 @@ public static class SegaAes {
     /// <param name="iv">The IV to use.</param>
     /// <returns>The decrypted data (same length as input array)</returns>
     public static byte[] Decrypt(byte[] data, byte[] key, byte[] iv) {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(iv);
         int blockSize = 4096;
         byte[] output = new byte[data.Length];
 

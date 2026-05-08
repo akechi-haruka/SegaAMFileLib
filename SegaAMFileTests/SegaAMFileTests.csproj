@@ -35,12 +35,6 @@
       <None Update="TestFiles\ICF1">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="TestFiles\icf_key.bin">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="TestFiles\icf_iv.bin">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
       <None Update="TestFiles\ICF2">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
@@ -49,6 +43,21 @@
       </None>
       <None Update="TestFiles\DLIApp.txt">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+        <None Update="TestFiles\keys.txt">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="TestFiles\ICF1">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestFiles\SDEM_1.01.01_20190304110240_0.app">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestFiles\SDEM_1.01.01_20190304110240_0.ntfs">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestFiles\SDEM_1.02.00_20190617104949_1_1.01.01.app">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 

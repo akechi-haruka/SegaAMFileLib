@@ -26,6 +26,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="LTRData.DiscUtils.ExFat" Version="1.0.80"/>
+        <PackageReference Include="LTRData.DiscUtils.Ntfs" Version="1.0.80"/>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
@@ -37,6 +39,18 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Haruka.Common\Haruka.Common.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="Haruka.Common.Settings.local.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="DiscUtils.Vhd">
+            <HintPath>..\..\DiscUtils\Library\Debug\net10.0\DiscUtils.Vhd.dll</HintPath>
+        </Reference>
     </ItemGroup>
     
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
