@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 
-public class FsUtils {
+public static class FsUtils {
     public delegate void ProgressCallback(string file, int num, int total, long currentSize, long processedSize, long totalSize);
 
     private delegate object SpanPattern<T>(ReadOnlySpan<T> s);

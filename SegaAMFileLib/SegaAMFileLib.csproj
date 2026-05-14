@@ -26,7 +26,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="LTRData.DiscUtils.ExFat" Version="1.0.80"/>
         <PackageReference Include="LTRData.DiscUtils.Ntfs" Version="1.0.80"/>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
@@ -48,6 +47,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Reference Include="DiscUtils.ExFat">
+            <HintPath>..\..\DiscUtils\Library\Debug\net10.0\DiscUtils.ExFat.dll</HintPath>
+        </Reference>
         <Reference Include="DiscUtils.Vhd">
             <HintPath>..\..\DiscUtils\Library\Debug\net10.0\DiscUtils.Vhd.dll</HintPath>
         </Reference>

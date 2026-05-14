@@ -59,6 +59,15 @@
         <None Update="TestFiles\SDEM_1.02.00_20190617104949_1_1.01.01.app">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+        <None Update="TestFiles\SDDT_A002_20200930135740_0.opt">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestFiles\SDEM_FH10_20200605065842_0.opt">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestFiles\SDEM_FH11_20210208034234_0.opt">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

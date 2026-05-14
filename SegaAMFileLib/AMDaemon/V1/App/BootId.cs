@@ -67,6 +67,10 @@ public unsafe struct BootId {
     public long GetOffsetOfFileSystem() {
         return (long)(headerBlockCount * blockSize);
     }
+
+    public override string ToString() {
+        return GetPlatformId() + ":" + GetAppId() + " ver. " + gameVersion + " - " + gameTimestamp;
+    }
 }
 
 public enum ContainerType : byte {

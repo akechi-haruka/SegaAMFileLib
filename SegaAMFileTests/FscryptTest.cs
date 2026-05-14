@@ -10,9 +10,18 @@ using Microsoft.Extensions.Logging;
 
 namespace SegaAMFileTests;
 
-public class AppTest {
+public class FscryptTest {
     private static readonly String TEST_FOLDER = "TestFiles";
     private static readonly String TMP_FOLDER = Path.Combine(TEST_FOLDER, "tmp");
+
+    [OneTimeSetUp]
+    public void Init() {
+        if (Directory.Exists(TMP_FOLDER)) {
+            Directory.Delete(TMP_FOLDER, true);
+        }
+
+        Directory.CreateDirectory(TMP_FOLDER);
+    }
 
     [SetUp]
     public void Setup() {
@@ -20,11 +29,6 @@ public class AppTest {
         Log.Initialize();
         Log.Main.LogDebug(Environment.CurrentDirectory);
         EncryptionEnvironment.Initialize("TestFiles\\keys.txt");
-        if (Directory.Exists(TMP_FOLDER)) {
-            Directory.Delete(TMP_FOLDER, true);
-        }
-
-        Directory.CreateDirectory(TMP_FOLDER);
     }
 
     private static void CheckSize(Type struc, int expected) {
@@ -102,5 +106,54 @@ public class AppTest {
         byte[] bat102 = File.ReadAllBytes(Path.Combine(TMP_FOLDER, "sdem102\\game.bat"));
 
         CollectionAssert.AreNotEqual(bat101, bat102);
+    }
+
+    [Test]
+    public void T07_TestExtractOpt() {
+        OptFile opt = new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDDT_A002_20200930135740_0.opt")));
+        Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDDT"));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
+
+        opt.ExtractTo(Path.Combine(TMP_FOLDER, "sddt_opt"));
+
+        Assert.That(File.Exists(Path.Combine(TMP_FOLDER, "sddt_opt\\DataConfig.xml")), Is.True);
+    }
+
+    [Test]
+    public void T08_TestExtractAPMOpt() {
+        OptFile opt = new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_FH10_20200605065842_0.opt")));
+        Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDEM"));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
+
+        opt.ExtractTo(Path.Combine(TMP_FOLDER, "sdem_opt"));
+
+        Assert.That(File.Exists(Path.Combine(TMP_FOLDER, "sdem_opt\\SDFH_FH10_20200605065842_0.opt")), Is.True);
+    }
+
+    [Test]
+    public void T09_TestExtractAPMOptInner() {
+        ApmOptFile opt = new ApmOptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "tmp\\sdem_opt\\SDFH_FH10_20200605065842_0.opt")));
+        Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDFH"));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
+
+        opt.ExtractTo(Path.Combine(TMP_FOLDER, "sdem_opt_inner"));
+
+        Assert.That(File.Exists(Path.Combine(TMP_FOLDER, "sdem_opt_inner\\game.bat")), Is.True);
+    }
+
+    [Test]
+    public void T10_TestExtractAPMOptChainInner() {
+        OptFile opt = new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_FH11_20210208034234_0.opt")), new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_FH10_20200605065842_0.opt"))));
+        Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDEM"));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
+
+        opt.ExtractInnerApmTo(Path.Combine(TMP_FOLDER, "sdem_opt_chain"));
+
+        Assert.That(File.Exists(Path.Combine(TMP_FOLDER, "sdem_opt_chain\\game.bat")), Is.True);
+
+        byte[] file1 = File.ReadAllBytes(Path.Combine(TMP_FOLDER, "sdem_opt_inner\\pen5.exe"));
+        byte[] file2 = File.ReadAllBytes(Path.Combine(TMP_FOLDER, "sdem_opt_chain\\pen5.exe"));
+
+        CollectionAssert.AreNotEqual(file1, file2);
     }
 }

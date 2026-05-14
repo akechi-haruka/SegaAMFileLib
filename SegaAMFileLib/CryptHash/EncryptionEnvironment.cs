@@ -6,7 +6,7 @@ namespace Haruka.Arcade.SegaAMFileLib.CryptHash;
 /// <summary>
 /// Defines environment specific encryption parameters for other SegaAMFileLib functions, such as AES keys/IVs.
 /// </summary>
-public class EncryptionEnvironment {
+public static class EncryptionEnvironment {
     /// <summary>
     /// Encryption parameters for the bootid header in .app/.opt/.pack files.
     /// </summary>
@@ -21,6 +21,10 @@ public class EncryptionEnvironment {
     /// Encryption parameters for .opt files.
     /// </summary>
     public static EncryptionParameters Option { get; private set; }
+
+    public static EncryptionParameters Apm { get; private set; }
+
+    public static byte[] ApmSecondaryEncryptionData { get; private set; }
 
     /// <summary>
     /// Game specific encryption parameters, where the key
@@ -39,6 +43,8 @@ public class EncryptionEnvironment {
             BootId = new EncryptionParameters(keylist, "BootId");
             Icf = new EncryptionParameters(keylist, "ICF");
             Option = new EncryptionParameters(keylist, "Option");
+            Apm = new EncryptionParameters(keylist, "APM");
+            ApmSecondaryEncryptionData = EncryptionParameters.ConvertKey(keylist.GetSetting("APM", "SecondaryEncryptionData"));
 
             Games = ImmutableDictionary.CreateRange(keylist.GetSections().ToDictionary(section => section, section => new EncryptionParameters(keylist, section)));
         } catch (Exception ex) {
@@ -59,12 +65,17 @@ public class EncryptionParameters {
     public byte[] Key { get; }
     public byte[] Iv { get; }
 
+    internal EncryptionParameters(byte[] key, byte[] iv) {
+        Key = key;
+        Iv = iv;
+    }
+
     internal EncryptionParameters(IniParser keylist, string section) {
         Key = ConvertKey(keylist.GetSetting(section, "Key"));
         Iv = ConvertKey(keylist.GetSetting(section, "IV"));
     }
 
-    private static byte[] ConvertKey(string str) {
+    internal static byte[] ConvertKey(string str) {
         if (String.IsNullOrWhiteSpace(str)) {
             return Array.Empty<byte>();
         }
