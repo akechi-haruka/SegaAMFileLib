@@ -33,7 +33,14 @@ public abstract class FscryptFile {
         byte[] bootIdBytes = new byte[bootIdLen];
         data.ReadExactly(bootIdBytes);
         bootIdBytes = Aes128Cbc.DecryptFromEnv(bootIdBytes, EncryptionEnvironment.BootId);
+
         BootId = StructUtils.FromBytes<BootId>(bootIdBytes);
+
+        uint crcExpected = BootId.crc;
+        uint crcCalculated = SegaCrc32.CalcCrc32(bootIdBytes, 4);
+        if (crcExpected != crcCalculated) {
+            throw new IOException("CRC failure for BootID: Expected " + crcExpected + ", got " + crcCalculated);
+        }
 
         BootId.Verify();
 

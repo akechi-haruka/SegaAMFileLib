@@ -31,6 +31,12 @@ public class FscryptTest {
         EncryptionEnvironment.Initialize("TestFiles\\keys.txt");
     }
 
+    private void CheckPath(string path) {
+        if (!File.Exists(path)) {
+            Assert.Inconclusive("Test file does not exist: " + path);
+        }
+    }
+
     private static void CheckSize(Type struc, int expected) {
         int calculated = Marshal.SizeOf(struc);
         Assert.That(calculated, Is.EqualTo(expected), "Size mismatch of struct " + struc);
@@ -43,7 +49,10 @@ public class FscryptTest {
 
     [Test]
     public void T02_TestParseKnownGoodNtfs() {
-        byte[] data = File.ReadAllBytes(Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.ntfs"));
+        string path = Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.ntfs");
+        CheckPath(path);
+
+        byte[] data = File.ReadAllBytes(path);
         NtfsFileSystem appFs = new NtfsFileSystem(new MemoryStream(data));
         DiscFileInfo innerVhd = appFs.Root.GetFiles().FirstOrDefault(f => f.Name == "internal_0.vhd");
         Assert.That(innerVhd, Is.Not.Null);
@@ -51,7 +60,10 @@ public class FscryptTest {
 
     [Test]
     public void T03_TestBootId() {
-        AppFile app = new AppFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app")));
+        string path = Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app");
+        CheckPath(path);
+
+        AppFile app = new AppFile(File.OpenRead(path));
 
         Assert.That(app.BootId.GetAppId(), Is.EqualTo("SDEM"));
 
@@ -60,8 +72,13 @@ public class FscryptTest {
 
     [Test]
     public void T04_TestDecrypt() {
-        byte[] goodData = File.ReadAllBytes(Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.ntfs"));
-        AppFile app = new AppFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app")));
+        string goodPath = Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.ntfs");
+        CheckPath(goodPath);
+        string appPath = Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app");
+        CheckPath(goodPath);
+
+        byte[] goodData = File.ReadAllBytes(goodPath);
+        AppFile app = new AppFile(File.OpenRead(appPath));
         Log.Main.LogInformation("Reading file...");
         byte[] checkData = app.ReadAndDecryptWholeFile();
 
@@ -84,7 +101,10 @@ public class FscryptTest {
 
     [Test]
     public void T05_TestExtractApp() {
-        AppFile app = new AppFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app")));
+        string path = Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app");
+        CheckPath(path);
+
+        AppFile app = new AppFile(File.OpenRead(path));
         Assert.That(app.BootId.GetAppId(), Is.EqualTo("SDEM"));
 
         app.ExtractTo(Path.Combine(TMP_FOLDER, "sdem101"));
@@ -94,8 +114,13 @@ public class FscryptTest {
 
     [Test]
     public void T06_TestExtractAppDifferential() {
-        AppFile app0 = new AppFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app")));
-        AppFile app1 = new AppFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_1.02.00_20190617104949_1_1.01.01.app")), app0);
+        string path0 = Path.Combine(TEST_FOLDER, "SDEM_1.01.01_20190304110240_0.app");
+        CheckPath(path0);
+        string path1 = Path.Combine(TEST_FOLDER, "SDEM_1.02.00_20190617104949_1_1.01.01.app");
+        CheckPath(path1);
+
+        AppFile app0 = new AppFile(File.OpenRead(path0));
+        AppFile app1 = new AppFile(File.OpenRead(path1), app0);
 
         app0.ExtractTo(Path.Combine(TMP_FOLDER, "sdem101"));
         app1.ExtractTo(Path.Combine(TMP_FOLDER, "sdem102"));
@@ -110,7 +135,10 @@ public class FscryptTest {
 
     [Test]
     public void T07_TestExtractOpt() {
-        OptFile opt = new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDDT_A002_20200930135740_0.opt")));
+        string path = Path.Combine(TEST_FOLDER, "SDDT_A002_20200930135740_0.opt");
+        CheckPath(path);
+
+        OptFile opt = new OptFile(File.OpenRead(path));
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDDT"));
         Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
 
@@ -121,7 +149,10 @@ public class FscryptTest {
 
     [Test]
     public void T08_TestExtractAPMOpt() {
-        OptFile opt = new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_FH10_20200605065842_0.opt")));
+        string path = Path.Combine(TEST_FOLDER, "SDEM_FH10_20200605065842_0.opt");
+        CheckPath(path);
+
+        OptFile opt = new OptFile(File.OpenRead(path));
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDEM"));
         Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
 
@@ -132,7 +163,10 @@ public class FscryptTest {
 
     [Test]
     public void T09_TestExtractAPMOptInner() {
-        ApmOptFile opt = new ApmOptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "tmp\\sdem_opt\\SDFH_FH10_20200605065842_0.opt")));
+        string path = Path.Combine(TMP_FOLDER, "sdem_opt\\SDFH_FH10_20200605065842_0.opt");
+        CheckPath(path);
+
+        ApmOptFile opt = new ApmOptFile(File.OpenRead(path));
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDFH"));
         Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
 
@@ -143,7 +177,13 @@ public class FscryptTest {
 
     [Test]
     public void T10_TestExtractAPMOptChainInner() {
-        OptFile opt = new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_FH11_20210208034234_0.opt")), new OptFile(File.OpenRead(Path.Combine(TEST_FOLDER, "SDEM_FH10_20200605065842_0.opt"))));
+        string path1 = Path.Combine(TEST_FOLDER, "SDEM_FH11_20210208034234_0.opt");
+        CheckPath(path1);
+        string path0 = Path.Combine(TEST_FOLDER, "SDEM_FH10_20200605065842_0.opt");
+        CheckPath(path0);
+
+        OptFile opt = new OptFile(File.OpenRead(path1), new OptFile(File.OpenRead(path0)));
+
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDEM"));
         Assert.That(opt.BootId.containerType, Is.EqualTo(ContainerType.Option));
 
