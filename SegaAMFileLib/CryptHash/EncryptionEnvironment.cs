@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 
 namespace Haruka.Arcade.SegaAMFileLib.CryptHash;
@@ -26,10 +25,7 @@ public static class EncryptionEnvironment {
 
     public static byte[] ApmSecondaryEncryptionData { get; private set; }
 
-    /// <summary>
-    /// Game specific encryption parameters, where the key
-    /// </summary>
-    public static ImmutableDictionary<string, EncryptionParameters> Games { get; private set; }
+    private static Dictionary<string, EncryptionParameters> Games { get; set; }
 
     /// <summary>
     /// Loads the encryption environment .ini file from a file.
@@ -45,8 +41,7 @@ public static class EncryptionEnvironment {
             Option = new EncryptionParameters(keylist, "Option");
             Apm = new EncryptionParameters(keylist, "APM");
             ApmSecondaryEncryptionData = EncryptionParameters.ConvertKey(keylist.GetSetting("APM", "SecondaryEncryptionData"));
-
-            Games = ImmutableDictionary.CreateRange(keylist.GetSections().ToDictionary(section => section, section => new EncryptionParameters(keylist, section)));
+            Games = keylist.GetSections().ToDictionary(section => section, section => new EncryptionParameters(keylist, section));
         } catch (Exception ex) {
             throw new IOException("Failed to read key file from " + filename, ex);
         }
@@ -58,6 +53,10 @@ public static class EncryptionEnvironment {
         }
 
         return value;
+    }
+
+    internal static void SetEncryptionParametersForGame(String appId, byte[] key, byte[] iv) {
+        Games[appId] = new EncryptionParameters(key, iv);
     }
 }
 

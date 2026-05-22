@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 namespace Haruka.Arcade.SegaAMFileLib.Misc;
 
 public static class GameID {
+    public const string APM_APP_ID = "SDEM";
+
     public static bool IsValid(string gameId) {
         ArgumentNullException.ThrowIfNull(gameId);
         if (gameId.Length != 4) {
@@ -22,5 +24,9 @@ public static class GameID {
         }
 
         return true;
+    }
+
+    public static bool IsApm(string appId) {
+        return appId == APM_APP_ID;
     }
 }

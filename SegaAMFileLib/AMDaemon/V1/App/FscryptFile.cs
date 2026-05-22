@@ -45,6 +45,7 @@ public abstract class FscryptFile {
         BootId.Verify();
 
         long filesystemOffset = BootId.GetOffsetOfFileSystem();
+        LOG.LogDebug("BootId block data: header=" + BootId.headerBlockCount + ", size=" + BootId.blockSize + ", total=" + BootId.blockCount + ", fsSize=" + BootId.GetFileSystemSize() + ", totalSize=" + BootId.GetFullContainerSize());
         LOG.LogDebug("File system starts at " + filesystemOffset);
         data.Seek(filesystemOffset, SeekOrigin.Begin);
     }
@@ -57,7 +58,7 @@ public abstract class FscryptFile {
         LOG.LogDebug("Allocating " + BootId.GetFileSystemSize() + " to read whole filesystem to memory");
         byte[] buf = new byte[BootId.GetFileSystemSize()];
 
-        AppFsStream decryptedFilesystemStream = new AppFsStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
+        FscryptStream decryptedFilesystemStream = new FscryptStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
 
         LOG.LogInformation("Reading " + buf.Length + " bytes");
         decryptedFilesystemStream.ReadExactly(buf);
@@ -86,12 +87,14 @@ public abstract class FscryptFile {
 
     public DiscFileInfo OpenInnerVhd() {
         SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
-        AppFsStream decryptedFilesystemStream = new AppFsStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
+        FscryptStream decryptedFilesystemStream = new FscryptStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
 
         if (LOG.IsEnabled(LogLevel.Trace)) {
             byte[] buf = new byte[256];
             decryptedFilesystemStream.ReadExactly(buf);
             LOG.LogTrace("Initial 256 bytes of decrypted filesystem:\n" + Hex.Dump(buf, 256));
+            decryptedFilesystemStream.Seek(0, SeekOrigin.Begin);
+            LOG.LogTrace(FsUtils.DumpNtfsFileSystemProperties(decryptedFilesystemStream));
             decryptedFilesystemStream.Seek(0, SeekOrigin.Begin);
         }
 

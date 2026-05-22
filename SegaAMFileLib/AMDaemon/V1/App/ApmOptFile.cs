@@ -19,10 +19,10 @@ public class ApmOptFile : AppFile {
         SourceStream.ReadExactly(initialBytes);
         SourceStream.Seek(-initialBytes.Length, SeekOrigin.Current);
 
-        EncryptionParameters ep = AppFsEncryption.CalculateApmEncryptionParameters(BootId.GetAppId());
+        EncryptionParameters ep = FscryptUtils.CalculateApmEncryptionParameters(BootId.GetAppId());
 
         Key = ep.Key;
-        Iv = AppFsEncryption.CalculateFileIv(Key, NTFS_HEADER, initialBytes);
+        Iv = FscryptUtils.CalculateFileIv(Key, NTFS_HEADER, initialBytes);
 
         LOG.LogInformation("APM3 opt Key was derived to be " + Hex.To(Key));
         LOG.LogInformation("APM3 opt IV was derived to be " + Hex.To(Iv));

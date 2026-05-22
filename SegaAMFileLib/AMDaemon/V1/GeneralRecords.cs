@@ -12,26 +12,32 @@ public unsafe struct Timestamp {
     /// The year value.
     /// </summary>
     public ushort year;
+
     /// <summary>
     /// The month value.
     /// </summary>
     public byte month;
+
     /// <summary>
     /// The day value.
     /// </summary>
     public byte day;
+
     /// <summary>
     /// The hour value.
     /// </summary>
     public byte hour;
+
     /// <summary>
     /// The minute value.
     /// </summary>
     public byte minute;
+
     /// <summary>
     /// The second value.
     /// </summary>
     public byte second;
+
     private fixed byte padding[1];
 
     /// <summary>
@@ -66,6 +72,10 @@ public unsafe struct Timestamp {
     /// </summary>
     /// <returns>A new DateTime with the current time.</returns>
     public DateTime ToDateTime() {
+        if (year <= 0 && month <= 0 && day <= 0 && hour <= 0 && minute <= 0 && second <= 0) {
+            return DateTime.MinValue;
+        }
+
         return new DateTime(year, month, day, hour, minute, second);
     }
 
@@ -74,7 +84,6 @@ public unsafe struct Timestamp {
         return ToDateTime().ToString(CultureInfo.InvariantCulture);
     }
 }
-
 
 /// <summary>
 /// A record containing a version number.
@@ -85,10 +94,12 @@ public struct Version {
     /// The "build" part of the version, the last part.
     /// </summary>
     public byte build;
+
     /// <summary>
     /// The "minor" part of the version, the middle part.
     /// </summary>
     public byte minor;
+
     /// <summary>
     /// The "major" part of the version, the first part.
     /// </summary>
@@ -97,5 +108,18 @@ public struct Version {
     /// <inheritdoc />
     public override string ToString() {
         return $"{major:00}.{minor:00}.{build:00}";
+    }
+
+    public System.Version ToVersion() {
+        return new System.Version(major, minor, build);
+    }
+
+    public static Version FromSystemVersion(System.Version version) {
+        ArgumentNullException.ThrowIfNull(version);
+        return new Version() {
+            major = (ushort)version.Major,
+            minor = (byte)version.Minor,
+            build = (byte)version.Build
+        };
     }
 }

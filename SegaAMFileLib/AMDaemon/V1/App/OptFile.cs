@@ -20,21 +20,21 @@ public class OptFile : FscryptFile {
         data.ReadExactly(initialBytes);
 
         Key = EncryptionEnvironment.Option.Key;
-        Iv = AppFsEncryption.CalculateFileIv(Key, IsApmOption() ? NTFS_HEADER : EXFAT_HEADER, initialBytes);
-        LOG.LogInformation("Custom IV was derived to be " + Hex.To(Iv));
+        Iv = FscryptUtils.CalculateFileIv(Key, IsApmOption() ? NTFS_HEADER : EXFAT_HEADER, initialBytes);
+        LOG.LogDebug("Custom IV was derived to be " + Hex.To(Iv));
 
         data.Seek(-initialBytes.Length, SeekOrigin.Current);
     }
 
     private bool IsApmOption() {
-        return BootId.GetAppId() == "SDEM";
+        return BootId.IsApmOption();
     }
 
     public override DiscFileSystem OpenRealFilesystem() {
         LOG.LogDebug("Opening filesystem");
 
         SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
-        AppFsStream decryptedFilesystemStream = new AppFsStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
+        FscryptStream decryptedFilesystemStream = new FscryptStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
 
         if (LOG.IsEnabled(LogLevel.Trace)) {
             byte[] buf = new byte[256];

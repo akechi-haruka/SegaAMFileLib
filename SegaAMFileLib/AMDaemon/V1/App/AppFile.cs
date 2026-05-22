@@ -26,8 +26,8 @@ public class AppFile : FscryptFile {
 
         EncryptionParameters env = EncryptionEnvironment.GetGame(BootId.GetAppId());
         Key = env.Key;
-        Iv = AppFsEncryption.CalculateFileIv(Key, NTFS_HEADER, initialBytes);
-        LOG.LogInformation("Custom IV was derived to be " + Hex.To(Iv));
+        Iv = FscryptUtils.CalculateFileIv(Key, NTFS_HEADER, initialBytes);
+        LOG.LogDebug("Custom IV was derived to be " + Hex.To(Iv));
 
         SourceStream.Seek(-initialBytes.Length, SeekOrigin.Current);
     }
@@ -49,6 +49,8 @@ public class AppFile : FscryptFile {
         if (virtualDisk == null) {
             throw new IOException("Could not determine disk format for inner .vhd file");
         }
+
+        LOG.LogTrace("VHD disk geometry: " + virtualDisk.Geometry);
 
         PartitionTable partitionTable = virtualDisk.Partitions;
         if (partitionTable == null) {

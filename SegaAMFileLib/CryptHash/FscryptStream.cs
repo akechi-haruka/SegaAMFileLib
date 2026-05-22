@@ -1,35 +1,46 @@
+using Haruka.Arcade.SegaAMFileLib.Misc;
 using Haruka.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.CryptHash;
 
-public class AppFsStream : Stream {
-    private const int PAGE_SIZE = 4096;
+public class FscryptStream : Stream {
+    public const int PAGE_SIZE = 4096;
     private static readonly ILogger LOG = Log.GetOrCreate("AppFsReader");
 
-    private readonly Stream encryptedStream;
+    private readonly Stream parentStream;
     private readonly byte[] key;
     private readonly byte[] iv;
-    private readonly long relativePositionToInnerStream;
+    private readonly long relativePositionToParentStream;
     private byte[] pageBuffer;
     private int pageBufferPosition;
     private int pageBufferSize;
     private long position;
+    private bool writeMode;
 
-    internal AppFsStream(Stream encryptedStream, long length, byte[] key, byte[] iv) {
-        this.encryptedStream = encryptedStream;
+    internal FscryptStream(Stream parentStream, long length, byte[] key, byte[] iv) {
+        this.parentStream = parentStream;
         this.key = key;
         this.iv = iv;
-        relativePositionToInnerStream = encryptedStream.Position;
+        relativePositionToParentStream = parentStream.Position;
         Length = length;
-        LOG.LogTrace("Created a stream of " + length + " bytes (base stream position = " + relativePositionToInnerStream + ")");
+        LOG.LogDebug("Created a stream of " + length + " bytes (base stream position = " + relativePositionToParentStream + ")");
+        LOG.LogDebug("Encryption key: " + Hex.To(key));
+        LOG.LogDebug("Encryption IV: " + Hex.To(iv));
     }
 
     public override void Flush() {
+        if (writeMode) {
+            WriteCurrentBuffer();
+            parentStream.Flush();
+        }
     }
 
     public override int Read(byte[] buffer, int offset, int count) {
-        LOG.LogTrace("Read " + Length + " bytes from " + position);
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            LOG.LogTrace("Read " + Length + " bytes from " + position);
+        }
+
         if (count == 0 || position >= Length) {
             return 0;
         }
@@ -66,13 +77,19 @@ public class AppFsStream : Stream {
         // fill page buffer by a page or remaining length
         pageBufferSize = (int)Math.Min(PAGE_SIZE, Length - position);
         pageBufferPosition = 0;
-        LOG.LogTrace("Fill page buffer from " + position + " by " + pageBufferSize + " bytes");
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            LOG.LogTrace("Fill page buffer from " + position + " by " + pageBufferSize + " bytes");
+        }
 
-        encryptedStream.ReadExactly(pageBuffer, 0, pageBufferSize);
+        parentStream.ReadExactly(pageBuffer, 0, pageBufferSize);
 
         // decrypt page buffer
         byte[] pageIv = new byte[16];
-        AppFsEncryption.CalculatePageIv((ulong)position, iv, ref pageIv);
+        FscryptUtils.CalculatePageIv((ulong)position, iv, ref pageIv);
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            LOG.LogTrace("New page IV for " + position + " is " + Hex.To(pageIv));
+        }
+
         pageBuffer = Aes128Cbc.Decrypt(pageBuffer, key, pageIv);
 
         position += pageBufferSize;
@@ -81,8 +98,9 @@ public class AppFsStream : Stream {
     private void FillPageBufferAfterSeek() {
         long blockStart = position / PAGE_SIZE * PAGE_SIZE;
         int blockOffset = (int)(position - blockStart);
-
-        LOG.LogTrace("Seek to " + position + ", adjust block position to " + blockStart + "(+" + blockOffset + ")");
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            LOG.LogTrace("Seek to " + position + ", adjust block position to " + blockStart + "(+" + blockOffset + ")");
+        }
 
         position = blockStart;
 
@@ -97,18 +115,22 @@ public class AppFsStream : Stream {
     }
 
     public override void Close() {
-        encryptedStream.Close();
+        Flush();
+        parentStream.Close();
         base.Close();
     }
 
     public override long Seek(long offset, SeekOrigin origin) {
-        LOG.LogTrace("Seek " + offset + " from " + origin);
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            LOG.LogTrace("Seek " + offset + " from " + origin);
+        }
+
         if (origin == SeekOrigin.Begin) {
             position = offset;
-            encryptedStream.Seek(offset + relativePositionToInnerStream, origin);
+            parentStream.Seek(offset + relativePositionToParentStream, origin);
         } else {
             position += offset;
-            encryptedStream.Seek(offset, origin);
+            parentStream.Seek(offset, origin);
         }
 
         FillPageBufferAfterSeek();
@@ -121,7 +143,42 @@ public class AppFsStream : Stream {
     }
 
     public override void Write(byte[] buffer, int offset, int count) {
-        throw new NotSupportedException();
+        // if write before first buffer happened, create buffer
+        if (pageBuffer == null) {
+            LOG.LogTrace("Write before buffer existed");
+            writeMode = true;
+            pageBuffer = new byte[PAGE_SIZE];
+        }
+
+        for (int i = offset; i < count; i += PAGE_SIZE) {
+            int bytes = Math.Min(PAGE_SIZE, count - i - offset);
+            Array.Copy(buffer, i, pageBuffer, 0, bytes);
+
+            // encrypt page
+            byte[] pageIv = new byte[16];
+            FscryptUtils.CalculatePageIv((ulong)position, iv, ref pageIv);
+            if (LOG.IsEnabled(LogLevel.Trace)) {
+                LOG.LogTrace("New page IV for " + position + " is " + Hex.To(pageIv));
+            }
+
+            pageBuffer = Aes128Cbc.Encrypt(pageBuffer, key, pageIv);
+
+            pageBufferPosition = 0;
+            pageBufferSize = bytes;
+
+            WriteCurrentBuffer();
+        }
+    }
+
+    private void WriteCurrentBuffer() {
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            LOG.LogTrace("Write " + pageBufferSize + " bytes to " + position);
+        }
+
+        parentStream.Write(pageBuffer, pageBufferPosition, pageBufferSize);
+        position += pageBufferSize;
+        pageBufferPosition = 0;
+        pageBufferSize = 0;
     }
 
     public override bool CanRead {
@@ -129,11 +186,11 @@ public class AppFsStream : Stream {
     }
 
     public override bool CanSeek {
-        get { return encryptedStream.CanSeek; }
+        get { return parentStream.CanSeek; }
     }
 
     public override bool CanWrite {
-        get { return false; }
+        get { return true; }
     }
 
     public override long Length { get; }
@@ -142,8 +199,11 @@ public class AppFsStream : Stream {
         get { return position; }
         set {
             if (value >= 0 && value <= Length) {
-                LOG.LogTrace("Set position to " + value);
-                encryptedStream.Position = value + relativePositionToInnerStream;
+                if (LOG.IsEnabled(LogLevel.Trace)) {
+                    LOG.LogTrace("Set position to " + value);
+                }
+
+                parentStream.Position = value + relativePositionToParentStream;
                 position = value;
                 FillPageBufferAfterSeek();
             } else {

@@ -3,7 +3,7 @@ using Haruka.Arcade.SegaAMFileLib.Misc;
 
 namespace Haruka.Arcade.SegaAMFileLib.CryptHash;
 
-static class AppFsEncryption {
+static class FscryptUtils {
     internal static void CalculatePageIv(ulong fileOffset, byte[] fileIv, ref byte[] pageIv) {
         for (int i = 0; i < fileIv.Length && i < pageIv.Length; i++) {
             pageIv[i] = (byte)(fileIv[i] ^ (fileOffset >> (8 * (i % 8))));
