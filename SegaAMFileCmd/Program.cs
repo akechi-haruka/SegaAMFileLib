@@ -35,6 +35,7 @@ namespace Haruka.Arcade.SegaAMFileCmd {
                 return Int32.MinValue;
             } finally {
                 CmdLog?.LogInformation("Exiting");
+                Log.FlushAndDispose();
             }
         }
 
