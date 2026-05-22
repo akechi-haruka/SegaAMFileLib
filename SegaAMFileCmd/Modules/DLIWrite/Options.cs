@@ -8,11 +8,11 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [Option("order-time", Required = false, HelpText = "Date/Time when the files should be downloaded")]
         [UsedImplicitly]
         public DateTime? OrderTime { get; set; }
-        
+
         [Option("release-time", Required = false, HelpText = "Date/Time when the files should be installed")]
         [UsedImplicitly]
         public DateTime? ReleaseTime { get; set; }
-        
+
         [Option("report-url", Required = false, HelpText = "Download progress reporting URL")]
         [UsedImplicitly]
         public string ReportUrl { get; set; }
@@ -31,6 +31,6 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
 
         [Value(3, Required = true, HelpText = "The file(s) to download")]
         [UsedImplicitly]
-        public string[] Urls { get; set; }
+        public IEnumerable<string> Urls { get; set; }
     }
 }

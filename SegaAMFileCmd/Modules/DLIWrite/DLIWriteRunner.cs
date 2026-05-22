@@ -25,7 +25,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
                 dli.Common.ReleaseType = OptReleaseType.Sequential;
             }
 
-            dli.Common.InstallUrls = opts.Urls;
+            dli.Common.InstallUrls = opts.Urls.ToArray();
             dli.Common.ExistUrls = new string[] { };
             dli.Common.PrivateInstallUrls = new string[] { };
             dli.Common.DownloadId = DownloadIdCalculator.GetDownloadId(dli);
