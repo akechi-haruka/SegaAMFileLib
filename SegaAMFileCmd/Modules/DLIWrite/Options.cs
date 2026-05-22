@@ -17,6 +17,10 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [UsedImplicitly]
         public string ReportUrl { get; set; }
 
+        [Option('e', "exists", Required = false, HelpText = "The filenames of files that must exist for this download")]
+        [UsedImplicitly]
+        public IEnumerable<string> Exists { get; set; }
+
         [Value(0, Required = true, HelpText = "The type of the DLI file (App,Opt)")]
         [UsedImplicitly]
         public DliType Type { get; set; }
@@ -29,7 +33,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [UsedImplicitly]
         public string OutputFile { get; set; }
 
-        [Value(3, Required = true, HelpText = "The file(s) to download")]
+        [Value(3, Required = true, HelpText = "The full URL(s) to the file(s) to download")]
         [UsedImplicitly]
         public IEnumerable<string> Urls { get; set; }
     }
