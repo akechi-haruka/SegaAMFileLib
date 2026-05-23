@@ -423,6 +423,80 @@ public class FscryptTest {
         Util.AssertTwoDirectoriesContentEqual(inputDir, checkDir);
     }
 
+    [Test]
+    public void T18_CreateLargeApp() {
+        const String appID = "TESL";
+        EncryptionEnvironment.SetEncryptionParametersForGame(appID, new byte[16], new byte[16]);
+
+        string inputDir = Path.Combine(TEST_FOLDER, "large_tmp");
+        if (!Directory.Exists(inputDir)) {
+            Directory.CreateDirectory(inputDir);
+        }
+
+        string largeFile = Path.Combine(inputDir, "large.bin");
+        if (!File.Exists(largeFile)) {
+            byte[] oneMegabyte = new byte[1024 * 1024];
+            oneMegabyte.Fill<byte>(0x77);
+            using (FileStream fs = File.OpenWrite(largeFile)) {
+                for (int i = 0; i < 1024; i++) {
+                    fs.Write(oneMegabyte);
+                }
+            }
+        }
+
+        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 0, 0), 0);
+
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+
+        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
+        FileAssert.Exists(targetFile);
+
+        AppFile bootlegFile = new AppFile(File.OpenRead(targetFile));
+        Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
+        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.App));
+        Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
+
+        string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_app_large");
+        bootlegFile.ExtractTo(checkDir);
+        DirectoryAssert.Exists(checkDir);
+
+        Util.AssertTwoDirectoriesContentEqual(inputDir, checkDir);
+    }
+
+    [Test]
+    public void T99_CreateShowOffApp() {
+        const String appID = "SDEM";
+
+        string path = Path.Combine(TEST_FOLDER, "ago.exe");
+        CheckPath(path);
+
+        string inputDir = Path.Combine(TEST_FOLDER, "ago_tmp");
+        if (Directory.Exists(inputDir)) {
+            Directory.Delete(inputDir, true);
+        }
+
+        Directory.CreateDirectory(inputDir);
+        File.Copy(path, Path.Combine(inputDir, "ago.exe"));
+
+        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 6, 0), 0);
+
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+
+        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
+        FileAssert.Exists(targetFile);
+
+        AppFile bootlegFile = new AppFile(File.OpenRead(targetFile));
+        Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
+        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.App));
+        Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
+
+        string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_app2");
+        bootlegFile.ExtractTo(checkDir);
+        DirectoryAssert.Exists(checkDir);
+
+        Util.AssertTwoDirectoriesContentEqual(inputDir, checkDir);
+    }
+
     private string CreateTestFileStructure() {
         string inputDir = Path.Combine(TEST_FOLDER, "fscrypt_test_structure");
         ZipFile.ExtractToDirectory(inputDir + ".zip", Directory.GetParent(inputDir).FullName, null, true);

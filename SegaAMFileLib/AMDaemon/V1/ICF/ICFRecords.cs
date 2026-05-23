@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 
@@ -12,31 +13,39 @@ public unsafe struct ICFHeaderRecord {
     /// The CRC checksum of the entire ICF file.
     /// </summary>
     public uint mainCrc;
+
     /// <summary>
     /// The size in bytes of the entire ICF file.
     /// </summary>
     public uint dataSize;
+
     private fixed byte padding[8];
+
     /// <summary>
     /// The number of <see cref="ICFEntryRecord"/>s in the ICF file.
     /// </summary>
     public ulong entryCount;
+
     /// <summary>
     /// The "app ID" of the ICF file (no zero terminator)
     /// </summary>
     public fixed byte appId[4];
+
     /// <summary>
     /// The "platform ID" of the ICF file (no zero terminator)
     /// </summary>
     public fixed byte platformId[3];
+
     /// <summary>
     /// The "platform generation" of the ICF file.
     /// </summary>
     public byte platformGeneration;
+
     /// <summary>
     /// The CRC checksum of all <see cref="ICFEntryRecord"/>s, which have <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set.
     /// </summary>
     public uint entryCrc;
+
     private fixed byte padding_[28];
 
     /// <summary>
@@ -98,35 +107,54 @@ public unsafe struct ICFEntryRecord {
     /// Flags for the entry.
     /// </summary>
     public EntryFlags entryFlags;
+
     /// <summary>
     /// The type of the entry. (app, option, ...)
     /// </summary>
     public ICFType typeFlags;
+
     private fixed byte padding[24];
+
     /// <summary>
     /// The version this entry is depicting.
     /// </summary>
     public Version version;
+
     /// <summary>
     /// The timestamp of when this entry was made.
     /// </summary>
     public Timestamp timestamp;
+
     /// <summary>
     /// The prerequisite version that is needed for this entry.
     /// </summary>
     public Version requiredVersion;
+
     /// <summary>
     /// The patch version this entry is depicting (zeroed if this is not a <see cref="ICFType.Patch"/> entry)
     /// </summary>
     public Version patchVersion;
+
     /// <summary>
     /// The timestamp of when this patch entry was made (zeroed if this is not a <see cref="ICFType.Patch"/> entry)
     /// </summary>
     public Timestamp patchTimestamp;
+
     /// <summary>
     /// The required patch version this entry is depicting (zeroed if this is not a <see cref="ICFType.Patch"/> entry)
     /// </summary>
     public Version patchRequiredVersion;
+
+    public string GetFileName(ICFHeaderRecord header) {
+        return (typeFlags == ICFType.System ? header.GetPlatformId(false) : header.GetAppId()) +
+               "_" +
+               (typeFlags == ICFType.Option ? throw new NotImplementedException("option name in ICF filename?") : (typeFlags == ICFType.System ? $"{version.major:D4}.{version.minor:D2}.{version.build:D2}" : $"{version.major:D}.{version.minor:D2}.{version.build:D2}")) +
+               "_" +
+               timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
+               "_" +
+               0 + // TODO: sequence?
+               typeFlags.GetExtension();
+    }
 }
 
 /// <summary>
@@ -138,20 +166,35 @@ public enum ICFType : uint {
     /// Required version will match the entry version.
     /// </summary>
     System = 0x0000,
+
     /// <summary>
     /// This entry depicts the app (game) version.
     /// Required version will be the system version.
     /// </summary>
     App = 0x0001,
+
     /// <summary>
     /// This entry depicts an option version.
     /// Required version will be the game or previous option version.
     /// </summary>
     Option = 0x0002,
+
     /// <summary>
     /// Unknown.
     /// </summary>
     Patch = 0x0101
+}
+
+static class ICFExtensions {
+    public static String GetExtension(this ICFType type) {
+        return type switch {
+            ICFType.App => ".app",
+            ICFType.Option => ".opt",
+            ICFType.System => ".pack",
+            ICFType.Patch => throw new NotSupportedException("patch entries cannot be converted to a filename"),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+    }
 }
 
 /// <summary>
@@ -163,6 +206,7 @@ public enum EntryFlags : uint {
     /// Unknown. Both Enabled1 and Enabled2 must be set for the entry to be valid/enabled.
     /// </summary>
     Enabled1 = 0x0002,
+
     /// <summary>
     /// Unknown. Both Enabled1 and Enabled2 must be set for the entry to be valid/enabled.
     /// </summary>

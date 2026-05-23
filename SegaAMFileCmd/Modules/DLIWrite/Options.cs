@@ -21,6 +21,18 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [UsedImplicitly]
         public IEnumerable<string> Exists { get; set; }
 
+        [Option("base-icf", Required = false, HelpText = "Generates filenames that must exist for this download from an existing ICF file")]
+        [UsedImplicitly]
+        public string BaseIcfFileName { get; set; }
+
+        [Option("icf-system-only", Required = false, HelpText = "Only use the system record to generate EXIST from an existing ICF file")]
+        [UsedImplicitly]
+        public bool IcfSystemOnly { get; set; }
+
+        [Option('k', "key", Required = false, HelpText = "The path to keys.txt, used to decrypt ICF files.", Default = "keys.txt")]
+        [UsedImplicitly]
+        public String KeyFile { get; set; }
+
         [Value(0, Required = true, HelpText = "The type of the DLI file (App,Opt)")]
         [UsedImplicitly]
         public DliType Type { get; set; }

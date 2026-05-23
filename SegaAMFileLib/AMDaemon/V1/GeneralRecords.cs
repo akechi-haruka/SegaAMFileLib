@@ -72,11 +72,15 @@ public unsafe struct Timestamp {
     /// </summary>
     /// <returns>A new DateTime with the current time.</returns>
     public DateTime ToDateTime() {
-        if (year <= 0 && month <= 0 && day <= 0 && hour <= 0 && minute <= 0 && second <= 0) {
+        if (year <= 0 || month <= 0 || day <= 0) {
             return DateTime.MinValue;
         }
 
-        return new DateTime(year, month, day, hour, minute, second);
+        try {
+            return new DateTime(year, month, day, hour, minute, second);
+        } catch (ArgumentOutOfRangeException e) {
+            throw new ArgumentException("Timestamp record is invalid and cannot be converted to string (" + year + ", " + month + ", " + day + ")");
+        }
     }
 
     /// <inheritdoc />

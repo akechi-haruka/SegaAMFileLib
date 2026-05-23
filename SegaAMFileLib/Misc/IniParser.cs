@@ -63,7 +63,7 @@ class IniParser {
         sectionPair.Section = sectionName;
         sectionPair.Key = settingName;
 
-        return (String)keyPairs[sectionPair];
+        return (String)keyPairs.GetValueOrDefault(sectionPair);
     }
 
     /// <summary>

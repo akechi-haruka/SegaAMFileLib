@@ -40,7 +40,14 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             Program.CmdLog.LogInformation("- Record Type: {v}", record.Value.typeFlags);
             Program.CmdLog.LogInformation("- Required Version: {v}", record.Value.requiredVersion);
             Program.CmdLog.LogInformation("- Version: {v}", record.Value.version);
-            Program.CmdLog.LogInformation("- Date: {d}", record.Value.timestamp);
+            String timeString;
+            try {
+                timeString = record.Value.timestamp.ToString();
+            } catch (Exception ex) {
+                timeString = "<invalid>: " + ex.Message;
+            }
+
+            Program.CmdLog.LogInformation("- Date: {d}", timeString);
         }
     }
 }

@@ -163,7 +163,7 @@ public class InstallFile {
     public string GetFileName() {
         return GameId +
                "_" +
-               (Type == FileType.Option ? OptionName : $"{VersionNumber.Major:D2}.{VersionNumber.Minor:D2}.{VersionNumber.Build:D2}") +
+               (Type == FileType.Option ? OptionName : $"{VersionNumber.Major:D}.{VersionNumber.Minor:D2}.{VersionNumber.Build:D2}") +
                "_" +
                Date.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
                "_" +

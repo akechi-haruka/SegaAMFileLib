@@ -160,6 +160,10 @@ public class DownloadInstructionFile {
             output.AddSetting(COMMON_SECTION, "INSTALL" + (i + 1), url);
         }
 
+        if (Common.ExistUrls.Length == 0) {
+            LOG.LogWarning("Creating a DLI file with no EXIST will break ICF1!");
+        }
+
         for (int i = 0; i < Common.ExistUrls.Length; i++) {
             string url = Common.ExistUrls[i];
             output.AddSetting(COMMON_SECTION, "EXIST" + (i + 1), url);

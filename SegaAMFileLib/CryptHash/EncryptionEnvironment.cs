@@ -34,6 +34,20 @@ public static class EncryptionEnvironment {
     /// <param name="filename">The file to read (usually keys.txt)</param>
     public static void Initialize(string filename) {
         try {
+            if (String.IsNullOrWhiteSpace(filename) || !File.Exists(filename)) {
+                DirectoryInfo di = Directory.GetParent(typeof(EncryptionEnvironment).Assembly.Location);
+                if (di == null) {
+                    throw new Exception("Could not find parent path of current assembly directory");
+                }
+
+                FileInfo fi = new FileInfo(Path.Combine(di.FullName, "keys.txt"));
+                if (!fi.Exists) {
+                    throw new FileNotFoundException("keys.txt was not found");
+                }
+
+                filename = fi.FullName;
+            }
+
             IniParser keylist = new IniParser(File.ReadAllLines(filename));
 
             BootId = new EncryptionParameters(keylist, "BootId");

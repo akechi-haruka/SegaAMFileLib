@@ -97,12 +97,10 @@ public static class FscryptContainerGenerator {
                 using (SparseStream internalFile = outerFs.OpenFile("internal_" + fileInfo.Sequence + ".vhd", FileMode.CreateNew)) {
                     internalFile.Write(innerFsBytes);
                 }
-            } else if (isExfat) {
+            } else { // isExfat is implicitely true at this point
                 // non-APM .opts have no outer filesystem
                 outerFs = null;
                 Array.Copy(innerFsBytes, outerFsBytes, innerFsBytes.Length);
-            } else {
-                throw new NotImplementedException("Cannot yet create container of type " + fileInfo.Type);
             }
         }
 
