@@ -5,6 +5,7 @@ namespace Haruka.Arcade.SegaAMFileLib.Misc;
 
 public static class GameID {
     public const string APM_APP_ID = "SDEM";
+    public const string SYSTEM_APP_ID = "----";
 
     public static bool IsValid(string gameId) {
         ArgumentNullException.ThrowIfNull(gameId);

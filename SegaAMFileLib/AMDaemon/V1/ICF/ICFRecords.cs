@@ -146,9 +146,13 @@ public unsafe struct ICFEntryRecord {
     public Version patchRequiredVersion;
 
     public string GetFileName(ICFHeaderRecord header) {
+        if (typeFlags == ICFType.Patch || (typeFlags != ICFType.System && typeFlags != ICFType.App && typeFlags != ICFType.Option)) {
+            return null;
+        }
+
         return (typeFlags == ICFType.System ? header.GetPlatformId(false) : header.GetAppId()) +
                "_" +
-               (typeFlags == ICFType.Option ? throw new NotImplementedException("option name in ICF filename?") : (typeFlags == ICFType.System ? $"{version.major:D4}.{version.minor:D2}.{version.build:D2}" : $"{version.major:D}.{version.minor:D2}.{version.build:D2}")) +
+               (typeFlags == ICFType.Option ? "A???" : (typeFlags == ICFType.System ? $"{version.major:D4}.{version.minor:D2}.{version.build:D2}" : $"{version.major:D}.{version.minor:D2}.{version.build:D2}")) + // TODO: option name in ICF file name?
                "_" +
                timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
                "_" +
@@ -182,7 +186,12 @@ public enum ICFType : uint {
     /// <summary>
     /// Unknown.
     /// </summary>
-    Patch = 0x0101
+    Patch = 0x0101,
+
+    /// <summary>
+    /// Empty record.
+    /// </summary>
+    Invalid = 0x0102,
 }
 
 static class ICFExtensions {
@@ -191,7 +200,7 @@ static class ICFExtensions {
             ICFType.App => ".app",
             ICFType.Option => ".opt",
             ICFType.System => ".pack",
-            ICFType.Patch => throw new NotSupportedException("patch entries cannot be converted to a filename"),
+            ICFType.Patch => "",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
@@ -203,6 +212,11 @@ static class ICFExtensions {
 [Flags]
 public enum EntryFlags : uint {
     /// <summary>
+    /// Invalid entry.
+    /// </summary>
+    Invalid = 0x0000,
+
+    /// <summary>
     /// Unknown. Both Enabled1 and Enabled2 must be set for the entry to be valid/enabled.
     /// </summary>
     Enabled1 = 0x0002,
@@ -210,5 +224,5 @@ public enum EntryFlags : uint {
     /// <summary>
     /// Unknown. Both Enabled1 and Enabled2 must be set for the entry to be valid/enabled.
     /// </summary>
-    Enabled2 = 0x0100
+    Enabled2 = 0x0100,
 }

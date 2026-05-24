@@ -62,9 +62,10 @@ public unsafe struct Timestamp {
     /// <summary>
     /// Creates a timestamp that is set to the current time.
     /// </summary>
+    /// <param name="offset">The amount of seconds to offset from the current time.</param>
     /// <returns>A new timestamp containing the current date/time.</returns>
-    public static Timestamp Now() {
-        return new Timestamp(DateTime.Now);
+    public static Timestamp Now(int offset = 0) {
+        return new Timestamp(DateTime.Now + TimeSpan.FromSeconds(offset));
     }
 
     /// <summary>
@@ -78,8 +79,8 @@ public unsafe struct Timestamp {
 
         try {
             return new DateTime(year, month, day, hour, minute, second);
-        } catch (ArgumentOutOfRangeException e) {
-            throw new ArgumentException("Timestamp record is invalid and cannot be converted to string (" + year + ", " + month + ", " + day + ")");
+        } catch (ArgumentOutOfRangeException ex) {
+            throw new ArgumentException("Timestamp record is invalid and cannot be converted to string (" + year + ", " + month + ", " + day + ")", ex);
         }
     }
 
@@ -94,6 +95,11 @@ public unsafe struct Timestamp {
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public struct Version {
+    /// <summary>
+    /// Constant version 0.0.0
+    /// </summary>
+    public static Version Empty { get; } = new Version();
+
     /// <summary>
     /// The "build" part of the version, the last part.
     /// </summary>
@@ -124,6 +130,14 @@ public struct Version {
             major = (ushort)version.Major,
             minor = (byte)version.Minor,
             build = (byte)version.Build
+        };
+    }
+
+    public static Version From(ushort major, byte minor, byte build) {
+        return new Version() {
+            major = major,
+            minor = minor,
+            build = build,
         };
     }
 }
