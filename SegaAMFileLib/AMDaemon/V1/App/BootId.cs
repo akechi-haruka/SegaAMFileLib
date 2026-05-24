@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Haruka.Arcade.SegaAMFileLib.CryptHash;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
@@ -12,7 +13,7 @@ public unsafe struct BootId {
     public uint crc;
     public uint length;
     public fixed byte signature[4];
-    private fixed byte padding[1];
+    public byte unknown;
     public InstallFile.FileType containerType;
     public byte sequenceNumber;
     public byte useCustomIV;
@@ -22,7 +23,7 @@ public unsafe struct BootId {
     public ulong blockCount;
     public ulong blockSize;
     public ulong headerBlockCount;
-    private fixed byte padding2[8];
+    public ulong unknown2;
     public fixed byte platformId[3];
     public byte platformGeneration;
     public Timestamp sourceTimestamp;
@@ -61,7 +62,11 @@ public unsafe struct BootId {
         }
 
         string appIdString = GetAppId();
-        if (!GameID.IsValid(appIdString)) {
+        if (containerType == InstallFile.FileType.Pack) {
+            if (appIdString != GameID.SYSTEM_APP_ID) {
+                throw new ArgumentException("BootId has invalid app ID for system file: " + appIdString);
+            }
+        } else if (!GameID.IsValid(appIdString)) {
             throw new ArgumentException("BootId has invalid app ID: " + appIdString);
         }
     }
@@ -133,5 +138,27 @@ public unsafe struct BootId {
         }
 
         return Hex.Dump(buf);
+    }
+
+    public static BootId FromEncryptedBytes(byte[] data) {
+        ArgumentNullException.ThrowIfNull(data);
+
+        if (data.Length != SIZE) {
+            throw new ArgumentException("Invalid data length: bootId must be " + SIZE + " bytes, " + data.Length + " given");
+        }
+
+        data = Aes128Cbc.DecryptFromEnv(data, EncryptionEnvironment.BootId);
+
+        BootId bootId = StructUtils.FromBytes<BootId>(data);
+
+        uint crcExpected = bootId.crc;
+        uint crcCalculated = SegaCrc32.CalcCrc32(data, 4);
+        if (crcExpected != crcCalculated) {
+            throw new IOException("CRC failure for BootID: Expected " + crcExpected + ", got " + crcCalculated);
+        }
+
+        bootId.Verify();
+
+        return bootId;
     }
 }

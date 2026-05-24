@@ -15,6 +15,7 @@ using Haruka.Common;
 using Haruka.Common.Collections;
 using Haruka.Common.Configuration;
 using Microsoft.Extensions.Logging;
+using Version = System.Version;
 
 namespace SegaAMFileTests;
 
@@ -478,9 +479,9 @@ public class FscryptTest {
         Directory.CreateDirectory(inputDir);
         File.Copy(path, Path.Combine(inputDir, "ago.exe"));
 
-        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 6, 0), 0);
+        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 6, 0), 0, new DateTime(2026, 5, 23, 9, 8, 40));
 
-        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo, new Version(64, 55, 1));
 
         string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
         FileAssert.Exists(targetFile);
@@ -495,6 +496,8 @@ public class FscryptTest {
         DirectoryAssert.Exists(checkDir);
 
         Util.AssertTwoDirectoriesContentEqual(inputDir, checkDir);
+
+        Log.Main.LogInformation(new FileInfo(targetFile).FullName);
     }
 
     private string CreateTestFileStructure() {

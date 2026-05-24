@@ -16,7 +16,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 public static class FscryptContainerGenerator {
     private static readonly ILogger LOG = Log.GetOrCreate("FSCryptGen");
 
-    public static void Create(String sourceFilesPath, String outputPath, InstallFile fileInfo, String platformId = "ACA", byte platformGeneration = 0, EncryptionParameters overrideEncryption = null) {
+    public static void Create(String sourceFilesPath, String outputPath, InstallFile fileInfo, System.Version systemVersion = null, String platformId = "ACA", byte platformGeneration = 0, byte unknown = 0, EncryptionParameters overrideEncryption = null) {
         ArgumentException.ThrowIfNullOrEmpty(sourceFilesPath);
 
         if (!Directory.Exists(sourceFilesPath)) {
@@ -55,10 +55,10 @@ public static class FscryptContainerGenerator {
         LOG.LogTrace("isExfat: " + isExfat);
         LOG.LogTrace("isAPM: " + fileInfo.IsApm());
 
-        const long minInnerFsSize = 4 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
+        const long minInnerFsSize = 40 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
         totalFileSize = Math.Max(minInnerFsSize, totalFileSize);
         long innerFsSize = (long)(totalFileSize * 1.05F); // NTFS metadata safety buffer
-        const long outerFsExtraSpace = 4 * 1024 * 1024; // extra space for the outer NTFS container holding the .vhd
+        const long outerFsExtraSpace = 10 * 1024 * 1024; // extra space for the outer NTFS container holding the .vhd
         long outerFsSize = isBasicOpt ? innerFsSize : innerFsSize + outerFsExtraSpace;
         long payloadLength = outerFsSize + 512 + 512; // + MBR + NTFS header
         payloadLength = BootId.NORMAL_BLOCK_SIZE * ((payloadLength + BootId.NORMAL_BLOCK_SIZE / 2) / BootId.NORMAL_BLOCK_SIZE); // round up to next block size
@@ -115,14 +115,21 @@ public static class FscryptContainerGenerator {
             length = BootId.SIZE,
             containerType = fileInfo.Type,
             sequenceNumber = fileInfo.Sequence,
-            gameTimestamp = Timestamp.Now(),
+            gameTimestamp = new Timestamp(fileInfo.Date),
             gameVersion = Version.FromSystemVersion(fileInfo.VersionNumber),
             blockSize = BootId.NORMAL_BLOCK_SIZE,
             headerBlockCount = 8,
             platformGeneration = platformGeneration,
             sourceTimestamp = new Timestamp(),
-            sourceVersion = new Version()
+            sourceVersion = new Version(),
+            unknown = unknown,
+            platformVersion = Version.FromSystemVersion(systemVersion ?? new System.Version())
         };
+
+        if (bootId.platformVersion.Equals(Version.Empty)) {
+            LOG.LogWarning("Platform version is unset! This makes this container invalid against amdaemon!");
+        }
+
         bootId.SetAppId(fileInfo.GameId);
         bootId.SetPlatform(platformId);
         bootId.SetSignature();
