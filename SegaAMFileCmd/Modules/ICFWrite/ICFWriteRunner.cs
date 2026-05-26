@@ -39,8 +39,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
                 return 1;
             }
 
-            DateTime parsedSystemTimestamp = DateTime.Now;
-            if (!DateTime.TryParse(opts.SystemTimestamp, out parsedSystemTimestamp)) {
+            if (!DateTime.TryParse(opts.SystemTimestamp, out DateTime parsedSystemTimestamp)) {
                 Program.CmdLog.LogError("Failed to parse given game timestamp: " + opts.GameTimestamp);
                 return 1;
             }
@@ -98,17 +97,6 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
             Program.CmdLog.LogInformation("ICF written to: {f}", opts.FileName);
 
             return 0;
-        }
-
-        private static void PrintRecordInformation(ICFEntryRecord? record) {
-            if (record == null) {
-                Program.CmdLog.LogWarning("Record not found");
-                return;
-            }
-
-            Program.CmdLog.LogInformation("- Required Version: {v}", record.Value.requiredVersion);
-            Program.CmdLog.LogInformation("- Version: {v}", record.Value.version);
-            Program.CmdLog.LogInformation("- Date: {d}", record.Value.timestamp);
         }
     }
 }

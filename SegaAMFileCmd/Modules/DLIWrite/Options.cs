@@ -33,6 +33,9 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [UsedImplicitly]
         public String KeyFile { get; set; }
 
+        [Option("ignore-crc", Required = false, Hidden = true)]
+        public bool IgnoreCrc { get; set; }
+
         [Value(0, Required = true, HelpText = "The type of the DLI file (App,Opt)")]
         [UsedImplicitly]
         public DliType Type { get; set; }

@@ -18,7 +18,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
 
                 EncryptionEnvironment.Initialize(opts.KeyFile);
 
-                InstallationConfigurationFile icf = new InstallationConfigurationFile(File.ReadAllBytes(opts.BaseIcfFileName), EncryptionEnvironment.Icf);
+                InstallationConfigurationFile icf = new InstallationConfigurationFile(File.ReadAllBytes(opts.BaseIcfFileName), EncryptionEnvironment.Icf, opts.IgnoreCrc);
                 exist.Add(icf.GetSystemRecord()?.GetFileName(icf.Header) ?? throw new IOException("ICF file invalid: no system record exists"));
 
                 if (!opts.IcfSystemOnly) {
@@ -34,7 +34,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
                     GameId = opts.GameId,
                     ReleaseTime = opts.OrderTime ?? DateTime.Now,
                     OrderTime = opts.ReleaseTime ?? DateTime.Now,
-                    PartSize = new uint[] { 1024, 2048, 4096 },
+                    PartSize = new uint[] { 1024, 2048, 8_388_608 },
                     IsdnDownloadInterval = new int[] { 1000, -1 },
                     AdslDownloadInterval = new int[] { 1000, -1 },
                     BroadbandDownloadInterval = new int[] { 1000, -1 },

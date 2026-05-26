@@ -34,7 +34,7 @@ public class InstallationConfigurationFile {
     /// <param name="encryption">The <see cref="EncryptionParameters"/> to use from the current <see cref="EncryptionEnvironment"/>, or null if <see cref="data"/> is not encrypted.</param>
     /// <exception cref="ArgumentException">If the data array is invalid</exception>
     /// <exception cref="IOException">If there is an error while deserializing data</exception>
-    public InstallationConfigurationFile(byte[] data, EncryptionParameters encryption = null) : this() {
+    public InstallationConfigurationFile(byte[] data, EncryptionParameters encryption = null, bool ignoreCrc = false) : this() {
         ArgumentNullException.ThrowIfNull(data);
 
         if (encryption != null) {
@@ -50,7 +50,7 @@ public class InstallationConfigurationFile {
 
         byte[] headerBytes = new byte[headerLen];
         Array.Copy(data, headerBytes, headerLen);
-        CheckCrc(data, "main CRC");
+        CheckCrc(data, "main CRC", ignoreCrc);
         Header = StructUtils.FromBytes<ICFHeaderRecord>(headerBytes);
 
         long fullLen = headerLen + Header.GetEntryCount() * entryLen;
@@ -75,11 +75,13 @@ public class InstallationConfigurationFile {
         if (dcrc != Header.entryCrc) {
             String error = "CRC error in ICF for entries: Expected " + Header.entryCrc.ToString("X2") + " but got " + dcrc.ToString("X2");
             LOG.LogError(error);
-            throw new IOException(error);
+            if (!ignoreCrc) {
+                throw new IOException(error);
+            }
         }
     }
 
-    private static void CheckCrc(byte[] data, string name) {
+    private static void CheckCrc(byte[] data, string name, bool ignoreError) {
         LOG.LogDebug("CRC-ing " + data.Length + " bytes for " + name);
         byte[] crcableData = new byte[data.Length - 4];
         Array.Copy(data, 4, crcableData, 0, data.Length - 4);
@@ -88,7 +90,9 @@ public class InstallationConfigurationFile {
         if (stored != calculated) {
             String error = "CRC error in ICF for " + name + ": Expected " + calculated.ToString("X2") + " but got " + stored.ToString("X2");
             LOG.LogError(error);
-            throw new IOException(error);
+            if (!ignoreError) {
+                throw new IOException(error);
+            }
         } else {
             LOG.LogTrace("ICF passed " + name + " check");
         }

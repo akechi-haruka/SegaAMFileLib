@@ -16,7 +16,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
 
             byte[] data = File.ReadAllBytes(opts.FileName);
 
-            InstallationConfigurationFile icf = new InstallationConfigurationFile(data, EncryptionEnvironment.Icf);
+            InstallationConfigurationFile icf = new InstallationConfigurationFile(data, EncryptionEnvironment.Icf, opts.IgnoreCrc);
 
             ICFHeaderRecord header = icf.Header;
             Program.CmdLog.LogInformation("App ID: {a}", header.GetAppId());
@@ -24,8 +24,10 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
 
             for (int i = 0; i < icf.GetRecordCount(); i++) {
                 ICFEntryRecord record = icf.GetRecord(i);
-                Program.CmdLog.LogInformation("Record " + i);
-                PrintRecordInformation(header, record);
+                if (record.typeFlags != ICFType.Option || !opts.IgnoreOption) {
+                    Program.CmdLog.LogInformation("Record " + i);
+                    PrintRecordInformation(header, record);
+                }
             }
 
             return 0;

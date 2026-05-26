@@ -132,6 +132,7 @@ public class DownloadInstructionFile {
     /// <param name="type">The type of DLI (app, opt).</param>
     /// <returns>A string containing the DLI in .ini form.</returns>
     public String Write(DliType type) {
+        VerifyBeforeWriting(type);
         IniParser output = new IniParser(new string[0]);
         output.AddSetting(COMMON_SECTION, "DLFORMAT", Common.DlFormat.ToString("F2", CultureInfo.InvariantCulture));
         output.AddSetting(COMMON_SECTION, "GAME_ID", Common.GameId);
@@ -148,7 +149,7 @@ public class DownloadInstructionFile {
         }
 
         if (Common.GameDescription != null) {
-            output.AddSetting(COMMON_SECTION, "GAME_DESC", Common.GameDescription);
+            output.AddSetting(COMMON_SECTION, "GAME_DESC", '"' + Common.GameDescription + '"');
         }
 
         if (type == DliType.Opt && Common.ReleaseType != null) {
@@ -158,10 +159,6 @@ public class DownloadInstructionFile {
         for (int i = 0; i < Common.InstallUrls.Length; i++) {
             string url = Common.InstallUrls[i];
             output.AddSetting(COMMON_SECTION, "INSTALL" + (i + 1), url);
-        }
-
-        if (Common.ExistUrls.Length == 0) {
-            LOG.LogWarning("Creating a DLI file with no EXIST will break ICF1!");
         }
 
         for (int i = 0; i < Common.ExistUrls.Length; i++) {
@@ -211,6 +208,26 @@ public class DownloadInstructionFile {
         }
 
         return output.SaveSettings();
+    }
+
+    private void VerifyBeforeWriting(DliType type) {
+        if (Common.InstallUrls.Length > 0) {
+            if (Common.ExistUrls.Length < 2) {
+                throw new ArgumentException("A DLI must have at least one .pack EXIST and one .app EXIST (you cannot download a sequence 0 .app file)");
+            }
+
+            if (!Common.ExistUrls.Any(s => s.EndsWith(".pack"))) {
+                throw new ArgumentException("A DLI must have at least one .pack EXIST");
+            }
+
+            if (!Common.ExistUrls.Any(s => s.EndsWith(".app"))) {
+                throw new ArgumentException("A DLI must have at least one .app EXIST");
+            }
+
+            if (Common.InstallUrls.Any(s => s.EndsWith("_0.app"))) {
+                throw new ArgumentException("A DLI cannot download a base .app");
+            }
+        }
     }
 
     private static String CreateCloudString(CloudDownload[] c) {
@@ -790,7 +807,7 @@ public class DownloadInstructionFile {
     /// </summary>
     public class ForegroundInfo {
         /// <summary>
-        /// The chunk size for which HTTP requests are sent. This array must have exactly 3 elements and values must be a power of 2.
+        /// The chunk size for which HTTP requests are sent. The value must be a power of 2.
         /// </summary>
         public uint PartSize { get; set; }
 

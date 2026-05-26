@@ -116,6 +116,10 @@ public class InstallFile {
             throw new ArgumentException("Only apps can have a requiredVersion");
         }
 
+        if (sequence > 0 && requiredVersion == null) {
+            throw new ArgumentException("If the file is part of a sequence, requiredVersion is required");
+        }
+
         return new InstallFile() {
             Type = type,
             GameId = gameId,
@@ -168,7 +172,7 @@ public class InstallFile {
                Date.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
                "_" +
                Sequence +
-               (RequiredAppVersion != null ? RequiredAppVersion.ToString(3) + "_" : "") +
+               (RequiredAppVersion != null ? "_" + $"{RequiredAppVersion.Major:D}.{RequiredAppVersion.Minor:D2}.{RequiredAppVersion.Build:D2}" : "") +
                GetContainerFileExtension();
     }
 

@@ -8,6 +8,12 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
         [UsedImplicitly]
         public String KeyFile { get; set; }
 
+        [Option("ignore-crc", Required = false, Hidden = true)]
+        public bool IgnoreCrc { get; set; }
+
+        [Option("ignore-option", Required = false, Hidden = true)]
+        public bool IgnoreOption { get; set; }
+
         [Value(0, Required = true, HelpText = "The path to the ICF file.")]
         [UsedImplicitly]
         public string FileName { get; set; }

@@ -16,7 +16,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 public static class FscryptContainerGenerator {
     private static readonly ILogger LOG = Log.GetOrCreate("FSCryptGen");
 
-    public static void Create(String sourceFilesPath, String outputPath, InstallFile fileInfo, System.Version systemVersion = null, String platformId = "ACA", byte platformGeneration = 0, byte unknown = 0, EncryptionParameters overrideEncryption = null) {
+    public static void Create(String sourceFilesPath, String outputPath, InstallFile fileInfo, System.Version systemVersion = null, DateTime? requiredTimestamp = null, String platformId = "ACA", byte platformGeneration = 0, byte unknown = 1, EncryptionParameters overrideEncryption = null) {
         ArgumentException.ThrowIfNullOrEmpty(sourceFilesPath);
 
         if (!Directory.Exists(sourceFilesPath)) {
@@ -25,6 +25,10 @@ public static class FscryptContainerGenerator {
 
         if (!(new DirectoryInfo(outputPath).Parent?.Exists ?? false)) {
             throw new DirectoryNotFoundException("Output path not found: " + outputPath);
+        }
+
+        if (requiredTimestamp == null && fileInfo.Sequence > 0) {
+            throw new ArgumentException("A patch file requires a required timestamp");
         }
 
         EncryptionParameters fsEncryption;
@@ -120,8 +124,8 @@ public static class FscryptContainerGenerator {
             blockSize = BootId.NORMAL_BLOCK_SIZE,
             headerBlockCount = 8,
             platformGeneration = platformGeneration,
-            sourceTimestamp = new Timestamp(),
-            sourceVersion = new Version(),
+            sourceTimestamp = requiredTimestamp != null ? new Timestamp(requiredTimestamp.Value) : new Timestamp(),
+            sourceVersion = fileInfo.Sequence > 0 ? Version.FromSystemVersion(fileInfo.RequiredAppVersion) : new Version(),
             unknown = unknown,
             platformVersion = Version.FromSystemVersion(systemVersion ?? new System.Version())
         };
@@ -141,6 +145,8 @@ public static class FscryptContainerGenerator {
         byte[] bootIdBytes = StructUtils.GetBytes(bootId);
         bootIdBytes = SegaCrc32.WriteCrcIntoFirst4Bytes(bootIdBytes);
         bootIdBytes = Aes128Cbc.Encrypt(bootIdBytes, EncryptionEnvironment.BootId.Key, EncryptionEnvironment.BootId.Iv);
+
+        // TODO: signature thing?
 
         LOG.LogInformation("Creating output file: " + fileInfo.GetFileName());
 
