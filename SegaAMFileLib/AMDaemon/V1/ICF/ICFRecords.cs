@@ -225,4 +225,6 @@ public enum EntryFlags : uint {
     /// Unknown. Both Enabled1 and Enabled2 must be set for the entry to be valid/enabled.
     /// </summary>
     Enabled2 = 0x0100,
+
+    Uncommited = 0x0200,
 }

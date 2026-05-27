@@ -59,7 +59,7 @@ public static class FscryptContainerGenerator {
         LOG.LogTrace("isExfat: " + isExfat);
         LOG.LogTrace("isAPM: " + fileInfo.IsApm());
 
-        const long minInnerFsSize = 4 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
+        const long minInnerFsSize = 80 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
         totalFileSize = Math.Max(minInnerFsSize, totalFileSize);
         long innerFsSize = (long)(totalFileSize * 1.1F); // no idea how to calculate overhead per file
         innerFsSize = MathUtilities.RoundUp(innerFsSize + 512 + 512, Sizes.Sector); // + MBR + NTFS header, then round up to full sector
@@ -127,9 +127,9 @@ public static class FscryptContainerGenerator {
             headerBlockCount = 8,
             platformGeneration = platformGeneration,
             sourceTimestamp = requiredTimestamp != null ? new Timestamp(requiredTimestamp.Value) : new Timestamp(),
-            sourceVersion = fileInfo.Sequence > 0 ? Version.FromSystemVersion(fileInfo.RequiredAppVersion) : new Version(),
+            sourceVersion = fileInfo.Sequence > 0 ? Version.FromSystemVersion(fileInfo.RequiredAppVersion) : Version.Empty,
             unknown = unknown,
-            platformVersion = Version.FromSystemVersion(systemVersion ?? new System.Version())
+            platformVersion = Version.FromSystemVersion(systemVersion ?? new System.Version(0, 0, 0))
         };
 
         if (bootId.platformVersion.Equals(Version.Empty)) {

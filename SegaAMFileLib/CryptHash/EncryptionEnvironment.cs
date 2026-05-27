@@ -66,6 +66,10 @@ public static class EncryptionEnvironment {
     }
 
     public static EncryptionParameters GetGame(string appId) {
+        if (appId == GameID.SYSTEM_APP_ID) {
+            appId = "ACA";
+        }
+
         if (!Games.TryGetValue(appId, out EncryptionParameters value)) {
             throw new ArgumentException("No decryption key exists for app " + appId);
         }

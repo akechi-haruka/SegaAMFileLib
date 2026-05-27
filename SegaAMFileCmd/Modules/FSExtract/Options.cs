@@ -18,7 +18,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
         [UsedImplicitly]
         public string FileName { get; set; }
 
-        [Value(1, Required = false, HelpText = "The where extracted files should be stored")]
+        [Value(1, Required = false, HelpText = "The path where extracted files should be stored")]
         [UsedImplicitly]
         public string OutputDirectory { get; set; }
     }

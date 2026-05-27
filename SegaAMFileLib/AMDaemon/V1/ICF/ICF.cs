@@ -135,6 +135,14 @@ public class InstallationConfigurationFile {
     }
 
     /// <summary>
+    /// Gets all records.
+    /// </summary>
+    /// <returns>All records stored in this ICF.</returns>
+    public ICFEntryRecord[] GetRecords() {
+        return records.ToArray();
+    }
+
+    /// <summary>
     /// Gets the record of <see cref="ICFType.System"/>.
     /// </summary>
     /// <returns>The record of <see cref="ICFType.System"/> or null.</returns>
