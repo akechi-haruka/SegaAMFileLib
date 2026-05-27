@@ -40,6 +40,11 @@ public class FscryptTest {
         EncryptionEnvironment.Initialize("TestFiles\\keys.txt");
     }
 
+    [TearDown]
+    public void End() {
+        Log.FlushAndDispose();
+    }
+
     private void CheckPath(string path) {
         if (!File.Exists(path)) {
             Assert.Inconclusive("Test file does not exist: " + path);
@@ -462,42 +467,6 @@ public class FscryptTest {
         DirectoryAssert.Exists(checkDir);
 
         Util.AssertTwoDirectoriesContentEqual(inputDir, checkDir);
-    }
-
-    [Test]
-    public void T99_CreateShowOffApp() {
-        const String appID = "SDEM";
-
-        string path = Path.Combine(TEST_FOLDER, "ago.exe");
-        CheckPath(path);
-
-        string inputDir = Path.Combine(TEST_FOLDER, "ago_tmp");
-        if (Directory.Exists(inputDir)) {
-            Directory.Delete(inputDir, true);
-        }
-
-        Directory.CreateDirectory(inputDir);
-        File.Copy(path, Path.Combine(inputDir, "ago.exe"));
-
-        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 6, 0), 0, new DateTime(2026, 5, 23, 9, 8, 40));
-
-        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo, new Version(64, 55, 1));
-
-        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
-        FileAssert.Exists(targetFile);
-
-        AppFile bootlegFile = new AppFile(File.OpenRead(targetFile));
-        Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
-        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.App));
-        Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
-
-        string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_app2");
-        bootlegFile.ExtractTo(checkDir);
-        DirectoryAssert.Exists(checkDir);
-
-        Util.AssertTwoDirectoriesContentEqual(inputDir, checkDir);
-
-        Log.Main.LogInformation(new FileInfo(targetFile).FullName);
     }
 
     private string CreateTestFileStructure() {

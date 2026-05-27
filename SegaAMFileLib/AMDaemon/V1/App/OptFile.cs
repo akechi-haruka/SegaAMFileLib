@@ -13,7 +13,7 @@ public class OptFile : FscryptFile {
 
     public OptFile ApmParent { get; }
 
-    public OptFile(Stream data, OptFile apmParent = null) : base(data) {
+    public OptFile(Stream data, OptFile apmParent = null, bool verify = true) : base(data, verify) {
         ApmParent = apmParent;
 
         byte[] initialBytes = new byte[16];

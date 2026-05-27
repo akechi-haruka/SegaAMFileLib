@@ -15,7 +15,7 @@ public class AppFile : FscryptFile {
 
     public AppFile Parent { get; }
 
-    public AppFile(Stream data, AppFile parent = null) : base(data) {
+    public AppFile(Stream data, AppFile parent = null, bool verify = true) : base(data, verify) {
         Parent = parent;
         GenerateEncryptionKeys();
     }

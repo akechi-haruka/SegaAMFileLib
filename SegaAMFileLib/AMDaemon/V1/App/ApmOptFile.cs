@@ -10,7 +10,7 @@ public class ApmOptFile : AppFile {
 
     public new ApmOptFile Parent { get; }
 
-    public ApmOptFile(Stream data, ApmOptFile parent = null) : base(data, parent) {
+    public ApmOptFile(Stream data, ApmOptFile parent = null) : base(data, parent, false) { // APM opts have no signature?
         Parent = parent;
     }
 

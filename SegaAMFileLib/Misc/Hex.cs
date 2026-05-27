@@ -35,7 +35,7 @@ public static class Hex {
                          + Environment.NewLine.Length; // Carriage return and line feed (should normally be 2)
 
         char[] line = (new String(' ', lineLength - 2) + Environment.NewLine).ToCharArray();
-        int expectedLines = (bytesLength + bytesPerLine - 1) / bytesPerLine;
+        int expectedLines = ((length < Int32.MaxValue ? length : bytesLength) + bytesPerLine - 1) / bytesPerLine;
         StringBuilder result = new StringBuilder(expectedLines * lineLength);
 
         for (int i = offset; i < Math.Min(bytesLength, offset + length); i += bytesPerLine) {

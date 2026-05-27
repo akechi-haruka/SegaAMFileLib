@@ -24,6 +24,8 @@ public static class EncryptionEnvironment {
     public static EncryptionParameters Apm { get; private set; }
 
     public static byte[] ApmSecondaryEncryptionData { get; private set; }
+    public static byte[] BootIdHmac { get; private set; }
+    public static String BootIdSigningKey { get; private set; }
 
     private static Dictionary<string, EncryptionParameters> Games { get; set; }
 
@@ -55,6 +57,8 @@ public static class EncryptionEnvironment {
             Option = new EncryptionParameters(keylist, "Option");
             Apm = new EncryptionParameters(keylist, "APM");
             ApmSecondaryEncryptionData = EncryptionParameters.ConvertKey(keylist.GetSetting("APM", "SecondaryEncryptionData"));
+            BootIdHmac = EncryptionParameters.ConvertKey(keylist.GetSetting("BootId", "Hmac"));
+            BootIdSigningKey = keylist.GetSetting("BootId", "Signing");
             Games = keylist.GetSections().ToDictionary(section => section, section => new EncryptionParameters(keylist, section));
         } catch (Exception ex) {
             throw new IOException("Failed to read key file from " + filename, ex);

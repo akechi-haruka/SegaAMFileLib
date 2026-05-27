@@ -59,16 +59,18 @@ public static class FscryptContainerGenerator {
         LOG.LogTrace("isExfat: " + isExfat);
         LOG.LogTrace("isAPM: " + fileInfo.IsApm());
 
-        const long minInnerFsSize = 40 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
+        const long minInnerFsSize = 4 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
         totalFileSize = Math.Max(minInnerFsSize, totalFileSize);
-        long innerFsSize = (long)(totalFileSize * 1.05F); // NTFS metadata safety buffer
-        const long outerFsExtraSpace = 10 * 1024 * 1024; // extra space for the outer NTFS container holding the .vhd
-        long outerFsSize = isBasicOpt ? innerFsSize : innerFsSize + outerFsExtraSpace;
-        long payloadLength = outerFsSize + 512 + 512; // + MBR + NTFS header
-        payloadLength = BootId.NORMAL_BLOCK_SIZE * ((payloadLength + BootId.NORMAL_BLOCK_SIZE / 2) / BootId.NORMAL_BLOCK_SIZE); // round up to next block size
+        long innerFsSize = (long)(totalFileSize * 1.1F); // no idea how to calculate overhead per file
+        innerFsSize = MathUtilities.RoundUp(innerFsSize + 512 + 512, Sizes.Sector); // + MBR + NTFS header, then round up to full sector
+        long innerFsMemory = innerFsSize + Sizes.Sector; // add sector for VHD footer
+        const long outerFsExtraSpace = minInnerFsSize; // extra space for the outer NTFS container holding the .vhd
+        long outerFsSize = MathUtilities.RoundUp(isBasicOpt ? innerFsSize : innerFsSize + outerFsExtraSpace, Sizes.Sector); // round up sector
+        long outerFsMemory = outerFsSize;
+        long payloadLength = outerFsMemory;
 
-        LOG.LogDebug("Allocating " + innerFsSize + " bytes for new inner file system");
-        byte[] innerFsBytes = new byte[MathUtilities.RoundUp(innerFsSize, Sizes.Sector) + Sizes.Sector]; // round up one sector + VHD footer
+        LOG.LogDebug("Allocating " + innerFsMemory + " bytes (" + Util.BytesToString(innerFsMemory) + ") for new inner file system");
+        byte[] innerFsBytes = new byte[innerFsMemory]; // round up one sector + VHD footer
         using (Stream innerFsStream = new MemoryStream(innerFsBytes, true)) {
             DiscFileSystem innerFs;
             VirtualDisk innerDisk = null;
@@ -91,8 +93,8 @@ public static class FscryptContainerGenerator {
         LOG.LogInformation(FsUtils.DumpNtfsFileSystemProperties(innerFsBytes));
         LOG.LogTrace("Initial 256 bytes of created inner filesystem:\n" + Hex.Dump(innerFsBytes, 256));
 
-        LOG.LogDebug("Allocating " + payloadLength + " bytes for container payload (including outer file system)");
-        byte[] outerFsBytes = new byte[payloadLength];
+        LOG.LogDebug("Allocating " + outerFsMemory + " bytes (" + Util.BytesToString(outerFsMemory) + ") for container payload (including outer file system)");
+        byte[] outerFsBytes = new byte[outerFsMemory];
         DiscFileSystem outerFs;
         using (Stream outerFsStream = new MemoryStream(outerFsBytes, true)) {
             if (isNtfsPlusVhd) {
@@ -104,7 +106,7 @@ public static class FscryptContainerGenerator {
             } else { // isExfat is implicitely true at this point
                 // non-APM .opts have no outer filesystem
                 outerFs = null;
-                Array.Copy(innerFsBytes, outerFsBytes, innerFsBytes.Length);
+                outerFsBytes = innerFsBytes;
             }
         }
 
@@ -137,7 +139,7 @@ public static class FscryptContainerGenerator {
         bootId.SetAppId(fileInfo.GameId);
         bootId.SetPlatform(platformId);
         bootId.SetSignature();
-        bootId.blockCount = bootId.headerBlockCount + (ulong)payloadLength / bootId.blockSize;
+        bootId.blockCount = bootId.headerBlockCount + (ulong)payloadLength / bootId.blockSize + 1;
 
         LOG.LogDebug("BootId block data: header=" + bootId.headerBlockCount + ", size=" + bootId.blockSize + ", total=" + bootId.blockCount + ", fsSize=" + bootId.GetFileSystemSize() + ", totalSize=" + bootId.GetFullContainerSize());
 
@@ -146,21 +148,67 @@ public static class FscryptContainerGenerator {
         bootIdBytes = SegaCrc32.WriteCrcIntoFirst4Bytes(bootIdBytes);
         bootIdBytes = Aes128Cbc.Encrypt(bootIdBytes, EncryptionEnvironment.BootId.Key, EncryptionEnvironment.BootId.Iv);
 
-        // TODO: signature thing?
-
         LOG.LogInformation("Creating output file: " + fileInfo.GetFileName());
 
         LOG.LogDebug("Encrypting file system");
 
         using (FileStream outputStream = new FileStream(Path.Combine(outputPath, fileInfo.GetFileName()), FileMode.Create)) {
-            outputStream.Write(bootIdBytes, 0, BootId.SIZE);
-            outputStream.Write(new byte[bootId.GetOffsetOfFileSystem() - bootIdBytes.Length]);
+            outputStream.Write(bootIdBytes, 0, (int)bootId.length);
+            outputStream.Write(new byte[bootId.GetOffsetOfFileSystem() - bootIdBytes.Length]); // hmac and crc placeholder
+
+            List<uint> blockCrcs = new List<uint>();
             using (FscryptStream encryptedOutputStream = new FscryptStream(outputStream, bootId.GetFileSystemSize(), fsEncryption.Key, fsEncryption.Iv)) {
                 encryptedOutputStream.Write(outerFsBytes);
+
+                ulong paddingLength = bootId.GetFullContainerSize() - (ulong)outputStream.Position;
+                encryptedOutputStream.Write(new byte[paddingLength]); // padding to block size
+                LOG.LogTrace(paddingLength + " padding bytes");
+
+                encryptedOutputStream.Flush();
+
+                outputStream.Seek(0, SeekOrigin.Begin);
+                for (ulong block = 0; block < bootId.blockCount; block++) {
+                    uint crc = SegaCrc32.CalcCrc32(outputStream.ReadExactly((int)bootId.blockSize));
+                    blockCrcs.Add(crc);
+                }
+
+                // do this inside FscryptStream using, otherwise the FileStream will be disposed
+
+                // build the CRC table
+                if (blockCrcs.Count != (int)bootId.blockCount) {
+                    throw new IOException("Expected to get " + bootId.blockCount + " CRCs from encryption operation, got " + blockCrcs.Count + "?");
+                }
+
+                outputStream.Seek(bootId.length + FscryptFile.HMAC_LENGTH, SeekOrigin.Begin); // rewind back to where the CRCs get written
+                foreach (uint crc in blockCrcs) {
+                    outputStream.Write(BitConverter.GetBytes(crc));
+                }
+
+                outputStream.Seek(bootId.length + FscryptFile.HMAC_LENGTH + 0x4, SeekOrigin.Begin); // rewind back again for the header CRC, ignore the CRC itself
+                uint bootidCrc = SegaCrc32.CalcCrc32(bootIdBytes);
+
+                byte[] headerBlockWithoutCrc = new byte[bootId.blockSize - bootId.length - FscryptFile.HMAC_LENGTH - 0x4]; // rest of the block
+                outputStream.ReadExactly(headerBlockWithoutCrc);
+
+                uint finalHeaderCrc = SegaCrc32.CalcCrc32(headerBlockWithoutCrc, null, null, bootidCrc);
+
+                outputStream.Seek(bootId.length + FscryptFile.HMAC_LENGTH, SeekOrigin.Begin);
+                outputStream.Write(BitConverter.GetBytes(finalHeaderCrc));
+
+                // create signature
+                outputStream.Seek(bootId.length + FscryptFile.HMAC_LENGTH, SeekOrigin.Begin);
+                byte[] headerBlocks = new byte[bootId.headerBlockCount * bootId.blockSize - bootId.length - FscryptFile.HMAC_LENGTH]; // rest of the block
+                outputStream.ReadExactly(headerBlocks);
+                byte[] hash = Signing.Hash(headerBlocks, EncryptionEnvironment.BootIdHmac);
+
+                LOG.LogTrace("HMAC signature: " + Hex.To(hash));
+
+                outputStream.Seek(bootId.length, SeekOrigin.Begin);
+                outputStream.Write(hash);
+
+                LOG.LogInformation("Successfully written " + outputStream.Length + " bytes to " + fileInfo);
             }
         }
-
-        LOG.LogInformation("Successfully written " + (outerFsBytes.LongLength + bootIdBytes.Length) + " bytes to " + fileInfo);
     }
 
     private static DiscFileSystem CreateInnerFsOpt(Stream stream, long size, InstallFile fileInfo) {

@@ -31,6 +31,9 @@ public class FscryptStream : Stream {
 
     public override void Flush() {
         if (writeMode) {
+            /*if (pageBufferPosition < pageBuffer.Length) {
+                Write(new byte[pageBuffer.Length - pageBufferPosition]);
+            }*/
             WriteCurrentBuffer();
             parentStream.Flush();
         }

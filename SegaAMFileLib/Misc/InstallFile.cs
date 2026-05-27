@@ -19,11 +19,11 @@ public class InstallFile {
 
         ArgumentNullException.ThrowIfNull(filename);
         InstallFile f = new InstallFile();
-        if (filename.Contains(".pack")) {
+        if (filename.EndsWith(".pack")) {
             f.Type = FileType.Pack;
-        } else if (filename.Contains(".app")) {
+        } else if (filename.EndsWith(".app")) {
             f.Type = FileType.App;
-        } else if (filename.Contains(".opt")) {
+        } else if (filename.EndsWith(".opt")) {
             f.Type = FileType.Option;
         }
 

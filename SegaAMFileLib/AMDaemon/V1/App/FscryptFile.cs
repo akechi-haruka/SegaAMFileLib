@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 
 public abstract class FscryptFile {
+    public const int HMAC_LENGTH = 0x200;
     protected static readonly byte[] NTFS_HEADER = Hex.From("eb52904e544653202020200010010000");
     protected static readonly byte[] EXFAT_HEADER = Hex.From("eb769045584641542020200000000000");
 
@@ -19,7 +20,7 @@ public abstract class FscryptFile {
     public byte[] Iv { get; protected set; }
     public Stream SourceStream { get; }
 
-    protected FscryptFile(Stream data) {
+    protected FscryptFile(Stream data, bool verify = true) {
         ArgumentNullException.ThrowIfNull(data);
 
         SourceStream = data;
@@ -37,8 +38,79 @@ public abstract class FscryptFile {
 
         long filesystemOffset = BootId.GetOffsetOfFileSystem();
         LOG.LogDebug("BootId block data: header=" + BootId.headerBlockCount + ", size=" + BootId.blockSize + ", total=" + BootId.blockCount + ", fsSize=" + BootId.GetFileSystemSize() + ", totalSize=" + BootId.GetFullContainerSize());
+
+        if (verify) {
+            VerifySignature(data);
+            VerifyCrcTable(bootIdBytes, data);
+        } else {
+            LOG.LogWarning("File verification is skipped");
+        }
+
         LOG.LogDebug("File system starts at " + filesystemOffset);
         data.Seek(filesystemOffset, SeekOrigin.Begin);
+    }
+
+    // amsImageHmac*
+    private void VerifySignature(Stream stream) {
+        LOG.LogTrace("Verifying fscrypt container HMAC signature");
+
+        stream.Seek(BootId.length, SeekOrigin.Begin);
+        byte[] stored = new byte[20];
+        stream.ReadExactly(stored);
+        stream.Seek(HMAC_LENGTH - stored.Length, SeekOrigin.Current);
+
+        // don't verify bootid and hmac itself
+        byte[] verifiableBytes = new byte[BootId.headerBlockCount * BootId.blockSize - BootId.length - HMAC_LENGTH];
+        stream.ReadExactly(verifiableBytes);
+
+        byte[] expected = Signing.Hash(verifiableBytes, EncryptionEnvironment.BootIdHmac);
+
+        if (!Enumerable.SequenceEqual(expected, stored)) {
+            throw new IOException("HMAC signature verification failed\nExpected: " + Hex.To(expected) + "\nGot     : " + Hex.To(stored));
+        }
+
+        LOG.LogDebug(verifiableBytes.Length + " bytes verified successfully");
+    }
+
+    private void VerifyCrcTable(byte[] bootId, Stream stream) {
+        LOG.LogTrace("Verifying fscrypt container CRC table");
+        stream.Seek(BootId.length + HMAC_LENGTH, SeekOrigin.Begin);
+        List<uint> givenTable = new List<uint>();
+        for (uint i = 0; i < BootId.blockCount; i++) {
+            byte[] crc = new byte[4];
+            stream.ReadExactly(crc);
+            givenTable.Add(BitConverter.ToUInt32(crc));
+        }
+
+        // first block skips hmac and it's own crc
+        stream.Seek(BootId.length + HMAC_LENGTH + 0x4, SeekOrigin.Begin);
+
+        List<uint> expectedTable = new List<uint>();
+        for (uint i = 0; i < BootId.blockCount; i++) {
+            if (i == 0) {
+                uint crc = SegaCrc32.CalcCrc32(bootId);
+                byte[] firstBlockData = new byte[BootId.blockSize - BootId.length - HMAC_LENGTH - 0x4];
+                stream.ReadExactly(firstBlockData);
+                expectedTable.Add(SegaCrc32.CalcCrc32(firstBlockData, null, null, crc));
+            } else {
+                byte[] block = new byte[BootId.blockSize];
+                stream.ReadExactly(block);
+                expectedTable.Add(SegaCrc32.CalcCrc32(block));
+            }
+        }
+
+        // check
+        if (givenTable.Count != expectedTable.Count) {
+            throw new IOException("Expected " + expectedTable.Count + " entries in the fscrypt containers' CRC table, got " + givenTable.Count);
+        }
+
+        for (int i = 0; i < givenTable.Count; i++) {
+            if (expectedTable[i] != givenTable[i]) {
+                throw new IOException("Failed to verify block " + i + ", CRC failure: Expected " + expectedTable[i].ToString("X") + ", got " + givenTable[i].ToString("X"));
+            }
+        }
+
+        LOG.LogDebug(givenTable.Count + " CRCs verified successfully");
     }
 
     public abstract DiscFileSystem OpenRealFilesystem();

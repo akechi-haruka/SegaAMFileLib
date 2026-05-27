@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Haruka.Arcade.SegaAMFileCmd.Modules.BootIdRead;
 using Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite;
+using Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFView;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet;
@@ -17,14 +18,15 @@ namespace Haruka.Arcade.SegaAMFileCmd {
         private static int Main(string[] args) {
             try {
                 return Parser.Default.ParseArguments
-                        <Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options>(args)
-                    .MapResult<Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, int>(
+                        <Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, Modules.FSExtract.Options>(args)
+                    .MapResult<Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, Modules.FSExtract.Options, int>(
                         SysfileSetRunner.Run,
                         SysfileSyncRunner.Run,
                         ICFViewRunner.Run,
                         ICFWriteRunner.Run,
                         DLIWriteRunner.Run,
                         BootIdRunner.Run,
+                        FSExtractRunner.Run,
                         _ => 1);
             } catch (Exception ex) {
                 if (CmdLog != null) {
