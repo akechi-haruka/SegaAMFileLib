@@ -6,11 +6,11 @@
         <Nullable>disable</Nullable>
         <Title>Sega AM File Library</Title>
         <Description>Allows reading and writing of common file formats used by Sega's Arcade systems</Description>
-        <Copyright>2025 Akechi Haruka</Copyright>
+        <Copyright>2025-2026 Akechi Haruka</Copyright>
         <Company>Haruka Akechi</Company>
         <AssemblyVersion></AssemblyVersion>
         <RootNamespace>Haruka.Arcade.SegaAMFileLib</RootNamespace>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
         <PackageTags>Arcade;File Formats</PackageTags>
