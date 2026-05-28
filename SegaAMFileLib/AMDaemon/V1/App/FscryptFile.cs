@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using DiscUtils;
-using DiscUtils.Ntfs;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 using Haruka.Common;
@@ -8,18 +7,55 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 
+/// <summary>
+/// The base class of any fscrypt container.
+/// </summary>
 public abstract class FscryptFile {
+    /// <summary>
+    /// The length of the HMAC signature placeholder in a fscrypt container.
+    /// </summary>
     public const int HMAC_LENGTH = 0x200;
+
+    /// <summary>
+    /// The first 16 bytes of a NTFS file system.
+    /// </summary>
     protected static readonly byte[] NTFS_HEADER = Hex.From("eb52904e544653202020200010010000");
+
+    /// <summary>
+    /// The first 16 bytes of an EXFAT file system.
+    /// </summary>
     protected static readonly byte[] EXFAT_HEADER = Hex.From("eb769045584641542020200000000000");
 
     private static readonly ILogger LOG = Log.GetOrCreate("FSCrypt");
 
+    /// <summary>
+    /// The BootId of the container.
+    /// </summary>
     public BootId BootId { get; }
-    public byte[] Key { get; protected set; }
-    public byte[] Iv { get; protected set; }
-    public Stream SourceStream { get; }
 
+    /// <summary>
+    /// The encryption key of the container.
+    /// </summary>
+    public byte[] Key { get; protected set; }
+
+    /// <summary>
+    /// The initialization vector of the container.
+    /// </summary>
+    public byte[] Iv { get; protected set; }
+
+    /// <summary>
+    /// The underlying stream where data is read from. 
+    /// </summary>
+    protected Stream SourceStream { get; }
+
+    /// <summary>
+    /// Loads a fscrypt container from a stream.
+    /// </summary>
+    /// <param name="data">The stream to read from</param>
+    /// <param name="verify">Whether to verify the container or not</param>
+    /// <exception cref="ArgumentNullException">if data is null</exception>
+    /// <exception cref="ArgumentException">there given stream is invalid</exception>
+    /// <exception cref="IOException">error reading BootId or header data</exception>
     protected FscryptFile(Stream data, bool verify = true) {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -113,8 +149,16 @@ public abstract class FscryptFile {
         LOG.LogDebug(givenTable.Count + " CRCs verified successfully");
     }
 
+    /// <summary>
+    /// Opens the file system that is inside this container, including any intermediary file systems or containers.
+    /// </summary>
+    /// <returns>A <see cref="DiscFileSystem"/> of the given FscryptFile that contains the actual game files (ex. you will find game.bat in an .app file)</returns>
     public abstract DiscFileSystem OpenRealFilesystem();
 
+    /// <summary>
+    /// Decrypts the WHOLE file in-memory. Do not use on large containers.
+    /// </summary>
+    /// <returns>a byte array of the raw (outer) file system that is inside the given container.</returns>
     public byte[] ReadAndDecryptWholeFile() {
         SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
 
@@ -129,6 +173,13 @@ public abstract class FscryptFile {
         return buf;
     }
 
+    /// <summary>
+    /// Extracts all files inside the innermost file system of this container to the given directory.
+    /// </summary>
+    /// <param name="targetDirectory">The directory to extract to. Will be created if it doesn't exist.</param>
+    /// <param name="callback">An optional callback function that receives extraction progress.</param>
+    /// <exception cref="ArgumentException"><paramref name="targetDirectory"/> is invalid</exception>
+    /// <exception cref="IOException">extraction failed (cause as inner exception)</exception>
     public void ExtractTo(string targetDirectory, FsUtils.ProgressCallback callback = null) {
         SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
         try {
@@ -146,30 +197,5 @@ public abstract class FscryptFile {
             LOG.LogError(ex, "Extraction to " + targetDirectory + " failed");
             throw new IOException("Extraction to " + targetDirectory + " failed", ex);
         }
-    }
-
-    public DiscFileInfo OpenInnerVhd() {
-        SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
-        FscryptStream decryptedFilesystemStream = new FscryptStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
-
-        if (LOG.IsEnabled(LogLevel.Trace)) {
-            byte[] buf = new byte[256];
-            decryptedFilesystemStream.ReadExactly(buf);
-            LOG.LogTrace("Initial 256 bytes of decrypted filesystem:\n" + Hex.Dump(buf, 256));
-            decryptedFilesystemStream.Seek(0, SeekOrigin.Begin);
-            LOG.LogTrace(FsUtils.DumpNtfsFileSystemProperties(decryptedFilesystemStream));
-            decryptedFilesystemStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        string innerVhdFile = "internal_" + BootId.sequenceNumber + ".vhd";
-        NtfsFileSystem appFs = new NtfsFileSystem(decryptedFilesystemStream);
-        DiscFileInfo innerVhd = appFs.Root.GetFiles().FirstOrDefault(f => f.Name == innerVhdFile);
-        if (innerVhd == null) {
-            LOG.LogError("Could not find requested file inside NTFS file system: " + innerVhdFile);
-            LOG.LogInformation("Files in root: " + String.Join(',', appFs.Root.GetFiles()));
-            throw new IOException("Could not find file inside NTFS file system: " + innerVhdFile);
-        }
-
-        return innerVhd;
     }
 }

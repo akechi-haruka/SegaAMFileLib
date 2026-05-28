@@ -16,6 +16,7 @@ namespace Haruka.Arcade.SegaAMFileLib.CryptHash {
         /// <param name="data">The byte array to use.</param>
         /// <param name="offset">The array offset to start from.</param>
         /// <param name="length">The length of the part to calculate the CRC32 of.</param>
+        /// <param name="initial">The initial value for the CRC operation. Set this if your previous operation was partial.</param>
         /// <returns>The computed CRC32 checksum.</returns>
         public static uint CalcCrc32(byte[] data, int? offset = null, int? length = null, uint initial = 0) {
             return INSTANCE.GetCrc32(data, offset ?? 0, length ?? data.Length, initial);

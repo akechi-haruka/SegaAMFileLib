@@ -52,9 +52,9 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSGenerate {
                 parsedBaseTimestamp = tmp;
             }
 
-            InstallFile fileInfo = InstallFile.Create(opts.Type, opts.Type == InstallFile.FileType.Pack ? GameID.SYSTEM_APP_ID : opts.GameId, Version.Parse(opts.Version), opts.OptionName, parsedTimestamp, opts.Sequence, parsedBaseVersion);
+            InstallFileName fileNameInfo = InstallFileName.Create(opts.Type, opts.Type == InstallFileName.FileType.Pack ? GameID.SYSTEM_APP_ID : opts.GameId, Version.Parse(opts.Version), opts.OptionName, parsedTimestamp, opts.Sequence, parsedBaseVersion);
 
-            FscryptContainerGenerator.Create(opts.InputDirectory, opts.OutputDirectory, fileInfo, parsedSystemVersion, parsedBaseTimestamp, opts.PlatformId, (byte)opts.PlatformGeneration, (byte)opts.Unknown);
+            FscryptContainerGenerator.Create(opts.InputDirectory, opts.OutputDirectory, fileNameInfo, parsedSystemVersion, parsedBaseTimestamp, opts.PlatformId, (byte)opts.PlatformGeneration, (byte)opts.Unknown);
 
             return 0;
         }

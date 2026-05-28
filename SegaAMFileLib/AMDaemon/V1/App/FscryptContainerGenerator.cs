@@ -13,10 +13,30 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 
+/// <summary>
+/// Helper class to create fscrypt containers.
+/// </summary>
 public static class FscryptContainerGenerator {
     private static readonly ILogger LOG = Log.GetOrCreate("FSCryptGen");
 
-    public static void Create(String sourceFilesPath, String outputPath, InstallFile fileInfo, System.Version systemVersion = null, DateTime? requiredTimestamp = null, String platformId = "ACA", byte platformGeneration = 0, byte unknown = 1, EncryptionParameters overrideEncryption = null) {
+    /// <summary>
+    /// Creates a fscrypt container.
+    /// </summary>
+    /// <param name="sourceFilesPath">The path to a directory containing files to add into this container.</param>
+    /// <param name="outputPath">The directory to save the container to. If the directory does not exist, the </param>
+    /// <param name="fileNameInfo">The <see cref="InstallFileName"/> that names this file.</param>
+    /// <param name="systemVersion">The system version this container is for. May be null to zero the value. On a <see cref="InstallFileName.FileType.Pack"/> this value must be equal to the container version itself (<see cref="InstallFileName.VersionNumber"/>.</param>
+    /// <param name="requiredTimestamp">The timestamp of the parent container this container is a patch for, or null if this is not a patch</param>
+    /// <param name="platformId">The platform ID this container is for.</param>
+    /// <param name="platformGeneration">The platform generation this container is for.</param>
+    /// <param name="unknown">Usually 1, sometimes 0. Don't know.</param>
+    /// <param name="overrideEncryption">Override the parameters specified in the <see cref="EncryptionEnvironment"/> with the given parameters, or null.</param>
+    /// <exception cref="ArgumentException">argument combinations are invalid, sourceFilesPath is null</exception>
+    /// <exception cref="DirectoryNotFoundException">input directory or output parent directory does not exist</exception>
+    /// <exception cref="NotSupportedException">container type can not be created yet</exception>
+    /// <exception cref="IOException">encryption error, filesystem creation error, write error or others</exception>
+    /// <returns>The full path to the created file.</returns>
+    public static string Create(String sourceFilesPath, String outputPath, InstallFileName fileNameInfo, System.Version systemVersion = null, DateTime? requiredTimestamp = null, String platformId = "ACA", byte platformGeneration = 0, byte unknown = 1, EncryptionParameters overrideEncryption = null) {
         ArgumentException.ThrowIfNullOrEmpty(sourceFilesPath);
 
         if (!Directory.Exists(sourceFilesPath)) {
@@ -27,20 +47,20 @@ public static class FscryptContainerGenerator {
             throw new DirectoryNotFoundException("Output path not found: " + outputPath);
         }
 
-        if (requiredTimestamp == null && fileInfo.Sequence > 0) {
+        if (requiredTimestamp == null && fileNameInfo.Sequence > 0) {
             throw new ArgumentException("A patch file requires a required timestamp");
         }
 
         EncryptionParameters fsEncryption;
         if (overrideEncryption != null) {
             fsEncryption = overrideEncryption;
-        } else if (fileInfo.Type == InstallFile.FileType.Option) {
-            fsEncryption = fileInfo.IsApm() ? FscryptUtils.CalculateApmEncryptionParameters(fileInfo.GameId) : EncryptionEnvironment.Option;
+        } else if (fileNameInfo.Type == InstallFileName.FileType.Option) {
+            fsEncryption = fileNameInfo.IsApm() ? FscryptUtils.CalculateApmEncryptionParameters(fileNameInfo.GameId) : EncryptionEnvironment.Option;
         } else {
-            fsEncryption = EncryptionEnvironment.GetGame(fileInfo.GameId);
+            fsEncryption = EncryptionEnvironment.GetGame(fileNameInfo.GameId);
         }
 
-        LOG.LogInformation("Creating container of type " + fileInfo.Type + " for " + fileInfo.GameId + ", ver " + fileInfo.VersionNumber);
+        LOG.LogInformation("Creating container of type " + fileNameInfo.Type + " for " + fileNameInfo.GameId + ", ver " + fileNameInfo.VersionNumber);
         LOG.LogDebug("Encryption key: " + Hex.To(fsEncryption.Key));
         LOG.LogDebug("Encryption IV: " + Hex.To(fsEncryption.Iv));
 
@@ -50,14 +70,14 @@ public static class FscryptContainerGenerator {
 
         LOG.LogInformation("Total file size to add into container: " + Util.BytesToString(totalFileSize));
 
-        bool isBasicOpt = fileInfo.Type == InstallFile.FileType.Option && !fileInfo.IsApm();
-        bool isNtfsPlusVhd = fileInfo.Type == InstallFile.FileType.App || fileInfo.Type == InstallFile.FileType.Pack || (fileInfo.Type == InstallFile.FileType.Option && fileInfo.IsApm());
-        bool isExfat = fileInfo.Type == InstallFile.FileType.Option && !fileInfo.IsApm();
+        bool isBasicOpt = fileNameInfo.Type == InstallFileName.FileType.Option && !fileNameInfo.IsApm();
+        bool isNtfsPlusVhd = fileNameInfo.Type == InstallFileName.FileType.App || fileNameInfo.Type == InstallFileName.FileType.Pack || (fileNameInfo.Type == InstallFileName.FileType.Option && fileNameInfo.IsApm());
+        bool isExfat = fileNameInfo.Type == InstallFileName.FileType.Option && !fileNameInfo.IsApm();
 
         LOG.LogTrace("isBasicOpt: " + isBasicOpt);
         LOG.LogTrace("isNtfsPlusVhd: " + isNtfsPlusVhd);
         LOG.LogTrace("isExfat: " + isExfat);
-        LOG.LogTrace("isAPM: " + fileInfo.IsApm());
+        LOG.LogTrace("isAPM: " + fileNameInfo.IsApm());
 
         const long minInnerFsSize = 80 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
         totalFileSize = Math.Max(minInnerFsSize, totalFileSize);
@@ -75,11 +95,11 @@ public static class FscryptContainerGenerator {
             DiscFileSystem innerFs;
             VirtualDisk innerDisk = null;
             if (isNtfsPlusVhd) {
-                innerFs = CreateInnerFsApp(innerFsStream, innerFsSize, fileInfo, out innerDisk);
+                innerFs = CreateInnerFsApp(innerFsStream, innerFsSize, fileNameInfo, out innerDisk);
             } else if (isExfat) {
-                innerFs = CreateInnerFsOpt(innerFsStream, innerFsSize, fileInfo);
+                innerFs = CreateInnerFsOpt(innerFsStream, innerFsSize, fileNameInfo);
             } else {
-                throw new NotSupportedException("Cannot yet create container of type " + fileInfo.Type + "(APM=" + fileInfo.IsApm() + ")");
+                throw new NotSupportedException("Cannot yet create container of type " + fileNameInfo.Type + "(APM=" + fileNameInfo.IsApm() + ")");
             }
 
             AddFilesToFileSystemRecursive(innerFs, sourceFilesPath);
@@ -88,7 +108,7 @@ public static class FscryptContainerGenerator {
             innerDisk?.Dispose();
         }
 
-        innerFsBytes = FixBpbForIv(innerFsBytes, fileInfo);
+        innerFsBytes = FixBpbForIv(innerFsBytes, fileNameInfo);
 
         LOG.LogInformation(FsUtils.DumpNtfsFileSystemProperties(innerFsBytes));
         LOG.LogTrace("Initial 256 bytes of created inner filesystem:\n" + Hex.Dump(innerFsBytes, 256));
@@ -98,9 +118,9 @@ public static class FscryptContainerGenerator {
         DiscFileSystem outerFs;
         using (Stream outerFsStream = new MemoryStream(outerFsBytes, true)) {
             if (isNtfsPlusVhd) {
-                outerFs = CreateOuterFsApp(outerFsStream, outerFsSize, fileInfo);
+                outerFs = CreateOuterFsApp(outerFsStream, outerFsSize, fileNameInfo);
 
-                using (SparseStream internalFile = outerFs.OpenFile("internal_" + fileInfo.Sequence + ".vhd", FileMode.CreateNew)) {
+                using (SparseStream internalFile = outerFs.OpenFile("internal_" + fileNameInfo.Sequence + ".vhd", FileMode.CreateNew)) {
                     internalFile.Write(innerFsBytes);
                 }
             } else { // isExfat is implicitely true at this point
@@ -112,31 +132,31 @@ public static class FscryptContainerGenerator {
 
         outerFs?.Dispose();
 
-        outerFsBytes = FixBpbForIv(outerFsBytes, fileInfo);
+        outerFsBytes = FixBpbForIv(outerFsBytes, fileNameInfo);
 
         LOG.LogInformation(FsUtils.DumpNtfsFileSystemProperties(outerFsBytes));
         LOG.LogTrace("Initial 256 bytes of created outer filesystem:\n" + Hex.Dump(outerFsBytes, 256));
 
         BootId bootId = new BootId() {
             length = BootId.SIZE,
-            containerType = fileInfo.Type,
-            sequenceNumber = fileInfo.Sequence,
-            gameTimestamp = new Timestamp(fileInfo.Date),
-            gameVersion = Version.FromSystemVersion(fileInfo.VersionNumber),
+            containerType = fileNameInfo.Type,
+            sequenceNumber = fileNameInfo.Sequence,
+            gameTimestamp = new Timestamp(fileNameInfo.Date),
+            gameVersion = new Version(fileNameInfo.VersionNumber),
             blockSize = BootId.NORMAL_BLOCK_SIZE,
             headerBlockCount = 8,
             platformGeneration = platformGeneration,
             sourceTimestamp = requiredTimestamp != null ? new Timestamp(requiredTimestamp.Value) : new Timestamp(),
-            sourceVersion = fileInfo.Sequence > 0 ? Version.FromSystemVersion(fileInfo.RequiredAppVersion) : Version.Empty,
+            sourceVersion = fileNameInfo.Sequence > 0 ? new Version(fileNameInfo.RequiredVersion) : Version.Empty,
             unknown = unknown,
-            platformVersion = Version.FromSystemVersion(systemVersion ?? new System.Version(0, 0, 0))
+            platformVersion = new Version(systemVersion ?? new System.Version(0, 0, 0))
         };
 
         if (bootId.platformVersion.Equals(Version.Empty)) {
             LOG.LogWarning("Platform version is unset! This makes this container invalid against amdaemon!");
         }
 
-        bootId.SetAppId(fileInfo.GameId);
+        bootId.SetAppId(fileNameInfo.GameId);
         bootId.SetPlatform(platformId);
         bootId.SetSignature();
         bootId.blockCount = bootId.headerBlockCount + (ulong)payloadLength / bootId.blockSize + 1;
@@ -148,11 +168,12 @@ public static class FscryptContainerGenerator {
         bootIdBytes = SegaCrc32.WriteCrcIntoFirst4Bytes(bootIdBytes);
         bootIdBytes = Aes128Cbc.Encrypt(bootIdBytes, EncryptionEnvironment.BootId.Key, EncryptionEnvironment.BootId.Iv);
 
-        LOG.LogInformation("Creating output file: " + fileInfo.GetFileName());
+        LOG.LogInformation("Creating output file: " + fileNameInfo.GetFileName());
 
         LOG.LogDebug("Encrypting file system");
 
-        using (FileStream outputStream = new FileStream(Path.Combine(outputPath, fileInfo.GetFileName()), FileMode.Create)) {
+        string targetFile = Path.Combine(outputPath, fileNameInfo.GetFileName());
+        using (FileStream outputStream = new FileStream(targetFile, FileMode.Create)) {
             outputStream.Write(bootIdBytes, 0, (int)bootId.length);
             outputStream.Write(new byte[bootId.GetOffsetOfFileSystem() - bootIdBytes.Length]); // hmac and crc placeholder
 
@@ -206,35 +227,37 @@ public static class FscryptContainerGenerator {
                 outputStream.Seek(bootId.length, SeekOrigin.Begin);
                 outputStream.Write(hash);
 
-                LOG.LogInformation("Successfully written " + outputStream.Length + " bytes to " + fileInfo);
+                LOG.LogInformation("Successfully written " + outputStream.Length + " bytes to " + fileNameInfo);
             }
         }
+
+        return targetFile;
     }
 
-    private static DiscFileSystem CreateInnerFsOpt(Stream stream, long size, InstallFile fileInfo) {
+    private static DiscFileSystem CreateInnerFsOpt(Stream stream, long size, InstallFileName fileNameInfo) {
         LOG.LogTrace("CreateInnerFsOpt");
-        ExFatPathFilesystem.Format(stream, new ExFatFormatOptions(), fileInfo.GetFileSystemLabel() + "_inner").Dispose();
+        ExFatPathFilesystem.Format(stream, new ExFatFormatOptions(), fileNameInfo.GetFileSystemLabel() + "_inner").Dispose();
         return new ExFatFileSystem(stream);
     }
 
-    private static DiscFileSystem CreateOuterFsApp(Stream stream, long size, InstallFile fileInfo) {
+    private static DiscFileSystem CreateOuterFsApp(Stream stream, long size, InstallFileName fileNameInfo) {
         LOG.LogTrace("CreateOuterFsApp");
         Geometry geometry = new Geometry(size, 1, 17, 4096); // This is a quirk based on how the IV derivation works, so we must use 4K sector size
-        return NtfsFileSystem.Format(stream, fileInfo.GameId + "_" + fileInfo.VersionNumber + "_" + fileInfo.Sequence + "_outer", geometry, 0, size / geometry.BytesPerSector, new NtfsFormatOptions());
+        return NtfsFileSystem.Format(stream, fileNameInfo.GameId + "_" + fileNameInfo.VersionNumber + "_" + fileNameInfo.Sequence + "_outer", geometry, 0, size / geometry.BytesPerSector, new NtfsFormatOptions());
     }
 
-    private static DiscFileSystem CreateInnerFsApp(Stream stream, long size, InstallFile fileInfo, out VirtualDisk innerDisk) {
+    private static DiscFileSystem CreateInnerFsApp(Stream stream, long size, InstallFileName fileNameInfo, out VirtualDisk innerDisk) {
         LOG.LogTrace("CreateInnerFsApp");
         innerDisk = Disk.InitializeFixed(stream, Ownership.None, size);
         BiosPartitionTable.Initialize(innerDisk, WellKnownPartitionType.WindowsNtfs);
         VolumeManager vm = new VolumeManager(innerDisk);
 
-        return NtfsFileSystem.Format(vm.GetLogicalVolumes()[0], fileInfo.GetFileSystemLabel() + "_inner", new NtfsFormatOptions());
+        return NtfsFileSystem.Format(vm.GetLogicalVolumes()[0], fileNameInfo.GetFileSystemLabel() + "_inner", new NtfsFormatOptions());
     }
 
-    private static byte[] FixBpbForIv(byte[] bytes, InstallFile fileInfo) {
-        bool isNtfsPlusVhd = fileInfo.Type == InstallFile.FileType.App || fileInfo.Type == InstallFile.FileType.Pack || (fileInfo.Type == InstallFile.FileType.Option && fileInfo.IsApm());
-        bool isExfat = fileInfo.Type == InstallFile.FileType.Option && !fileInfo.IsApm();
+    private static byte[] FixBpbForIv(byte[] bytes, InstallFileName fileNameInfo) {
+        bool isNtfsPlusVhd = fileNameInfo.Type == InstallFileName.FileType.App || fileNameInfo.Type == InstallFileName.FileType.Pack || (fileNameInfo.Type == InstallFileName.FileType.Option && fileNameInfo.IsApm());
+        bool isExfat = fileNameInfo.Type == InstallFileName.FileType.Option && !fileNameInfo.IsApm();
 
         if (isNtfsPlusVhd) {
             LOG.LogTrace("FixBpbForIv(Ntfs)");

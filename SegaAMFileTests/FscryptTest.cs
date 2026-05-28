@@ -49,6 +49,11 @@ public class FscryptTest {
         if (!File.Exists(path)) {
             Assert.Inconclusive("Test file does not exist: " + path);
         }
+
+        long len = new FileInfo(path).Length;
+        if (len < BootId.SIZE) {
+            Assert.Inconclusive("Test file (" + path + ") has invalid size: " + len);
+        }
     }
 
     private static void CheckSize(Type struc, int expected) {
@@ -166,7 +171,7 @@ public class FscryptTest {
 
         OptFile opt = new OptFile(File.OpenRead(path));
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDDT"));
-        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFile.FileType.Option));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFileName.FileType.Option));
         Assert.That(opt.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(path).Length));
 
         opt.ExtractTo(Path.Combine(TMP_FOLDER, "sddt_opt"));
@@ -181,7 +186,7 @@ public class FscryptTest {
 
         OptFile opt = new OptFile(File.OpenRead(path));
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDEM"));
-        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFile.FileType.Option));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFileName.FileType.Option));
         Assert.That(opt.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(path).Length));
 
         opt.ExtractTo(Path.Combine(TMP_FOLDER, "sdem_opt"));
@@ -196,7 +201,7 @@ public class FscryptTest {
 
         ApmOptFile opt = new ApmOptFile(File.OpenRead(path));
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDFH"));
-        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFile.FileType.Option));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFileName.FileType.Option));
         Assert.That(opt.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(path).Length));
 
         opt.ExtractTo(Path.Combine(TMP_FOLDER, "sdem_opt_inner"));
@@ -214,7 +219,7 @@ public class FscryptTest {
         OptFile opt = new OptFile(File.OpenRead(path1), new OptFile(File.OpenRead(path0)));
 
         Assert.That(opt.BootId.GetAppId(), Is.EqualTo("SDEM"));
-        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFile.FileType.Option));
+        Assert.That(opt.BootId.containerType, Is.EqualTo(InstallFileName.FileType.Option));
         Assert.That(opt.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(path1).Length));
 
         opt.ExtractInnerApmTo(Path.Combine(TMP_FOLDER, "sdem_opt_chain"));
@@ -335,16 +340,16 @@ public class FscryptTest {
         const String appID = "TEST";
         EncryptionEnvironment.SetEncryptionParametersForGame(appID, new byte[16], new byte[16]);
         string inputDir = CreateTestFileStructure();
-        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 0, 0), 0);
+        InstallFileName fileNameInfo = InstallFileName.CreateApp(appID, new Version(1, 0, 0), 0);
 
-        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileNameInfo);
 
-        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
+        string targetFile = Path.Combine(TMP_FOLDER, fileNameInfo.GetFileName());
         FileAssert.Exists(targetFile);
 
         AppFile bootlegFile = new AppFile(File.OpenRead(targetFile));
         Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
-        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.App));
+        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFileName.FileType.App));
         Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
 
         string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_app");
@@ -386,16 +391,16 @@ public class FscryptTest {
         const String appID = "TOPT";
         EncryptionEnvironment.SetEncryptionParametersForGame(appID, new byte[16], new byte[16]);
         string inputDir = CreateTestFileStructure();
-        InstallFile fileInfo = InstallFile.CreateOption(appID, "T001", new Version(1, 0, 0), 0);
+        InstallFileName fileNameInfo = InstallFileName.CreateOption(appID, "T001", new Version(1, 0, 0), 0);
 
-        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileNameInfo);
 
-        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
+        string targetFile = Path.Combine(TMP_FOLDER, fileNameInfo.GetFileName());
         FileAssert.Exists(targetFile);
 
         OptFile bootlegFile = new OptFile(File.OpenRead(targetFile));
         Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
-        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.Option));
+        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFileName.FileType.Option));
         Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
 
         string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_opt");
@@ -410,16 +415,16 @@ public class FscryptTest {
         const String appID = GameID.APM_APP_ID;
         EncryptionEnvironment.SetEncryptionParametersForGame(appID, new byte[16], new byte[16]);
         string inputDir = CreateTestFileStructure();
-        InstallFile fileInfo = InstallFile.CreateOption(appID, "TE10", new Version(1, 0, 0), 0);
+        InstallFileName fileNameInfo = InstallFileName.CreateOption(appID, "TE10", new Version(1, 0, 0), 0);
 
-        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileNameInfo);
 
-        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
+        string targetFile = Path.Combine(TMP_FOLDER, fileNameInfo.GetFileName());
         FileAssert.Exists(targetFile);
 
         ApmOptFile bootlegFile = new ApmOptFile(File.OpenRead(targetFile));
         Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
-        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.Option));
+        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFileName.FileType.Option));
         Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
 
         string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_apmopt");
@@ -450,16 +455,16 @@ public class FscryptTest {
             }
         }
 
-        InstallFile fileInfo = InstallFile.CreateApp(appID, new Version(1, 0, 0), 0);
+        InstallFileName fileNameInfo = InstallFileName.CreateApp(appID, new Version(1, 0, 0), 0);
 
-        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileInfo);
+        FscryptContainerGenerator.Create(inputDir, TMP_FOLDER, fileNameInfo);
 
-        string targetFile = Path.Combine(TMP_FOLDER, fileInfo.GetFileName());
+        string targetFile = Path.Combine(TMP_FOLDER, fileNameInfo.GetFileName());
         FileAssert.Exists(targetFile);
 
         AppFile bootlegFile = new AppFile(File.OpenRead(targetFile));
         Assert.That(bootlegFile.BootId.GetAppId(), Is.EqualTo(appID));
-        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFile.FileType.App));
+        Assert.That(bootlegFile.BootId.containerType, Is.EqualTo(InstallFileName.FileType.App));
         Assert.That(bootlegFile.BootId.GetFullContainerSize(), Is.EqualTo(new FileInfo(targetFile).Length));
 
         string checkDir = Path.Combine(TMP_FOLDER, "fscrypt_test_structure_check_app_large");

@@ -21,11 +21,20 @@ public static class EncryptionEnvironment {
     /// </summary>
     public static EncryptionParameters Option { get; private set; }
 
+    /// <summary>
+    /// Encryption parameters for APM .opt files.
+    /// </summary>
     public static EncryptionParameters Apm { get; private set; }
 
+    /// <summary>
+    /// Secondary encryption data specific to APM .opt files.
+    /// </summary>
     public static byte[] ApmSecondaryEncryptionData { get; private set; }
+
+    /// <summary>
+    /// The HMAC key used for verifying fscrypt containers.
+    /// </summary>
     public static byte[] BootIdHmac { get; private set; }
-    public static String BootIdSigningKey { get; private set; }
 
     private static Dictionary<string, EncryptionParameters> Games { get; set; }
 
@@ -58,13 +67,18 @@ public static class EncryptionEnvironment {
             Apm = new EncryptionParameters(keylist, "APM");
             ApmSecondaryEncryptionData = EncryptionParameters.ConvertKey(keylist.GetSetting("APM", "SecondaryEncryptionData"));
             BootIdHmac = EncryptionParameters.ConvertKey(keylist.GetSetting("BootId", "Hmac"));
-            BootIdSigningKey = keylist.GetSetting("BootId", "Signing");
             Games = keylist.GetSections().ToDictionary(section => section, section => new EncryptionParameters(keylist, section));
         } catch (Exception ex) {
             throw new IOException("Failed to read key file from " + filename, ex);
         }
     }
 
+    /// <summary>
+    /// Returns the encryption parameters for the specified game.
+    /// </summary>
+    /// <param name="appId">The 4-letter game ID, or "----" for the system encryption parameters.</param>
+    /// <returns>The <see cref="EncryptionParameters"/> for the given game.</returns>
+    /// <exception cref="ArgumentException">if no decryption key exists for the given game.</exception>
     public static EncryptionParameters GetGame(string appId) {
         if (appId == GameID.SYSTEM_APP_ID) {
             appId = "ACA";
@@ -82,8 +96,18 @@ public static class EncryptionEnvironment {
     }
 }
 
+/// <summary>
+/// Container that bundles an encryption key and IV.
+/// </summary>
 public class EncryptionParameters {
+    /// <summary>
+    /// The encryption key.
+    /// </summary>
     public byte[] Key { get; }
+
+    /// <summary>
+    /// The initialization vector.
+    /// </summary>
     public byte[] Iv { get; }
 
     internal EncryptionParameters(byte[] key, byte[] iv) {

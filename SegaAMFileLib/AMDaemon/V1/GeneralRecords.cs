@@ -94,11 +94,39 @@ public unsafe struct Timestamp {
 /// A record containing a version number.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
-public struct Version {
+public record struct Version {
     /// <summary>
     /// Constant version 0.0.0
     /// </summary>
     public static Version Empty { get; } = new Version();
+
+    /// <summary>
+    /// Creates a version with all fields set to zero. (0.0.0)
+    /// </summary>
+    public Version() {
+    }
+
+    /// <summary>
+    /// Creates a version that is a copy of a <see cref="System.Version"/>.
+    /// </summary>
+    /// <param name="version">The version to copy.</param>
+    public Version(System.Version version) {
+        major = (ushort)version.Major;
+        minor = (byte)version.Minor;
+        build = (byte)version.Build;
+    }
+
+    /// <summary>
+    /// Creates a version with the given values.
+    /// </summary>
+    /// <param name="major">The "major" part of the version number.</param>
+    /// <param name="minor">The "minor" part of the version number.</param>
+    /// <param name="build">The "build" part of the version number.</param>
+    public Version(ushort major, byte minor, byte build) {
+        this.major = major;
+        this.minor = minor;
+        this.build = build;
+    }
 
     /// <summary>
     /// The "build" part of the version, the last part.
@@ -120,24 +148,11 @@ public struct Version {
         return $"{major:00}.{minor:00}.{build:00}";
     }
 
+    /// <summary>
+    /// Converts the given (SEGA) Version to a <see cref="System.Version"/>.
+    /// </summary>
+    /// <returns>A new System.Version with the same values.</returns>
     public System.Version ToVersion() {
         return new System.Version(major, minor, build);
-    }
-
-    public static Version FromSystemVersion(System.Version version) {
-        ArgumentNullException.ThrowIfNull(version);
-        return new Version() {
-            major = (ushort)version.Major,
-            minor = (byte)version.Minor,
-            build = (byte)version.Build
-        };
-    }
-
-    public static Version From(ushort major, byte minor, byte build) {
-        return new Version() {
-            major = major,
-            minor = minor,
-            build = build,
-        };
     }
 }

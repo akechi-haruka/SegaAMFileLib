@@ -13,13 +13,13 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFCommit {
 
             InstallationConfigurationFile icf = new InstallationConfigurationFile(data, EncryptionEnvironment.Icf, true);
 
-            ICFEntryRecord[] records = icf.GetRecords();
+            IcfEntryRecord[] records = icf.GetRecords();
             icf.ClearRecords();
-            foreach (ICFEntryRecord record in records) {
-                ICFEntryRecord newRecord = record;
+            foreach (IcfEntryRecord record in records) {
+                IcfEntryRecord newRecord = record;
                 if ((record.entryFlags & EntryFlags.Uncommited) != EntryFlags.Invalid) {
                     newRecord.entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2;
-                    Program.CmdLog.LogInformation("Commited an entry for: " + newRecord.GetFileName(icf.Header)); // TODO: patch returns null
+                    Program.CmdLog.LogInformation("Commited an entry for: " + newRecord.GetFileName(icf.Header));
                 }
 
                 icf.AddRecord(newRecord);

@@ -15,23 +15,24 @@ public class InstallationConfigurationFile {
     /// <summary>
     /// The header of the ICF data, holding CRC, size, game and platform information.
     /// </summary>
-    public ICFHeaderRecord Header;
+    public IcfHeaderRecord Header;
 
-    private readonly List<ICFEntryRecord> records;
+    private readonly List<IcfEntryRecord> records;
 
     /// <summary>
     /// Creates a new (blank) ICF file with zeroed contents.
     /// </summary>
     public InstallationConfigurationFile() {
-        Header = new ICFHeaderRecord();
-        records = new List<ICFEntryRecord>();
+        Header = new IcfHeaderRecord();
+        records = new List<IcfEntryRecord>();
     }
 
     /// <summary>
     /// Reads a ICF file from the given data.
     /// </summary>
     /// <param name="data">The raw content of an ICF file (retrieved by <see cref="File.ReadAllBytes"/> or similar)</param>
-    /// <param name="encryption">The <see cref="EncryptionParameters"/> to use from the current <see cref="EncryptionEnvironment"/>, or null if <see cref="data"/> is not encrypted.</param>
+    /// <param name="encryption">The <see cref="EncryptionParameters"/> to use from the current <see cref="EncryptionEnvironment"/>, or null if <paramref name="data"/> is not encrypted.</param>
+    /// <param name="ignoreCrc">If true, the checksums stored in the ICF are not verified.</param>
     /// <exception cref="ArgumentException">If the data array is invalid</exception>
     /// <exception cref="IOException">If there is an error while deserializing data</exception>
     public InstallationConfigurationFile(byte[] data, EncryptionParameters encryption = null, bool ignoreCrc = false) : this() {
@@ -41,8 +42,8 @@ public class InstallationConfigurationFile {
             data = SegaAes.DecryptFromEnv(data, encryption);
         }
 
-        int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
-        int entryLen = Marshal.SizeOf<ICFEntryRecord>();
+        int headerLen = Marshal.SizeOf<IcfHeaderRecord>();
+        int entryLen = Marshal.SizeOf<IcfEntryRecord>();
 
         if (data.Length < headerLen) {
             throw new ArgumentException("data given is " + data.Length + " bytes, but at least" + headerLen + " are expected");
@@ -51,7 +52,7 @@ public class InstallationConfigurationFile {
         byte[] headerBytes = new byte[headerLen];
         Array.Copy(data, headerBytes, headerLen);
         CheckCrc(data, "main CRC", ignoreCrc);
-        Header = StructUtils.FromBytes<ICFHeaderRecord>(headerBytes);
+        Header = StructUtils.FromBytes<IcfHeaderRecord>(headerBytes);
 
         long fullLen = headerLen + Header.GetEntryCount() * entryLen;
         if (fullLen != data.Length) {
@@ -64,7 +65,7 @@ public class InstallationConfigurationFile {
         for (int i = 0; i < Header.GetEntryCount(); i++) {
             byte[] entryBytes = new byte[entryLen];
             Array.Copy(data, headerLen + i * entryLen, entryBytes, 0, entryLen);
-            ICFEntryRecord entry = StructUtils.FromBytes<ICFEntryRecord>(entryBytes);
+            IcfEntryRecord entry = StructUtils.FromBytes<IcfEntryRecord>(entryBytes);
             if ((entry.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0) {
                 dcrc ^= SegaCrc32.CalcCrc32(entryBytes);
             }
@@ -99,20 +100,20 @@ public class InstallationConfigurationFile {
     }
 
     /// <summary>
-    /// Returns the number of <see cref="ICFEntryRecord"/>s in this ICF.
+    /// Returns the number of <see cref="IcfEntryRecord"/>s in this ICF.
     /// </summary>
-    /// <returns>The number of <see cref="ICFEntryRecord"/>s in this ICF.</returns>
+    /// <returns>The number of <see cref="IcfEntryRecord"/>s in this ICF.</returns>
     public int GetRecordCount() {
         return records.Count;
     }
 
     /// <summary>
-    /// Returns the <see cref="ICFEntryRecord"/> at the given index.
+    /// Returns the <see cref="IcfEntryRecord"/> at the given index.
     /// </summary>
     /// <param name="index"></param>
     /// <exception cref="IndexOutOfRangeException">If the entry with the given index does not exist.</exception>
-    /// <returns>The <see cref="ICFEntryRecord"/> at the given index.</returns>
-    public ICFEntryRecord GetRecord(int index) {
+    /// <returns>The <see cref="IcfEntryRecord"/> at the given index.</returns>
+    public IcfEntryRecord GetRecord(int index) {
         return records[index];
     }
 
@@ -120,8 +121,8 @@ public class InstallationConfigurationFile {
     /// Gets the enabled record of the given type.
     /// </summary>
     /// <param name="type">The type to search for.</param>
-    /// <returns>The <see cref="ICFEntryRecord"/> matching the given type, which also has <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set, or null.</returns>
-    public ICFEntryRecord? GetRecord(ICFType type) {
+    /// <returns>The <see cref="IcfEntryRecord"/> matching the given type, which also has <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set, or null.</returns>
+    public IcfEntryRecord? GetRecord(IcfType type) {
         return records.FirstOrDefault(r => (r.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0 && r.typeFlags == type);
     }
 
@@ -129,8 +130,8 @@ public class InstallationConfigurationFile {
     /// Gets all enabled records of the given type.
     /// </summary>
     /// <param name="type">The type to search for.</param>
-    /// <returns>The <see cref="ICFEntryRecord"/>s matching the given type, which also has <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set,.</returns>
-    public ICFEntryRecord[] GetRecords(ICFType type) {
+    /// <returns>The <see cref="IcfEntryRecord"/>s matching the given type, which also has <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set,.</returns>
+    public IcfEntryRecord[] GetRecords(IcfType type) {
         return records.Where(r => (r.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0 && r.typeFlags == type).ToArray();
     }
 
@@ -138,37 +139,37 @@ public class InstallationConfigurationFile {
     /// Gets all records.
     /// </summary>
     /// <returns>All records stored in this ICF.</returns>
-    public ICFEntryRecord[] GetRecords() {
+    public IcfEntryRecord[] GetRecords() {
         return records.ToArray();
     }
 
     /// <summary>
-    /// Gets the record of <see cref="ICFType.System"/>.
+    /// Gets the record of <see cref="IcfType.System"/>.
     /// </summary>
-    /// <returns>The record of <see cref="ICFType.System"/> or null.</returns>
-    public ICFEntryRecord? GetSystemRecord() {
-        return GetRecord(ICFType.System);
+    /// <returns>The record of <see cref="IcfType.System"/> or null.</returns>
+    public IcfEntryRecord? GetSystemRecord() {
+        return GetRecord(IcfType.System);
     }
 
     /// <summary>
-    /// Gets the record of <see cref="ICFType.App"/>.
+    /// Gets the record of <see cref="IcfType.App"/>.
     /// </summary>
-    /// <returns>The record of <see cref="ICFType.App"/> or null.</returns>
-    public ICFEntryRecord? GetAppRecord() {
-        return GetRecord(ICFType.App);
+    /// <returns>The record of <see cref="IcfType.App"/> or null.</returns>
+    public IcfEntryRecord? GetAppRecord() {
+        return GetRecord(IcfType.App);
     }
 
     /// <summary>
-    /// Adds the given record and updates <see cref="ICFHeaderRecord.entryCount"/> and <see cref="ICFHeaderRecord.dataSize"/>.
+    /// Adds the given record and updates <see cref="IcfHeaderRecord.entryCount"/> and <see cref="IcfHeaderRecord.dataSize"/>.
     /// </summary>
     /// <param name="record">The record to add.</param>
-    public void AddRecord(ICFEntryRecord record) {
+    public void AddRecord(IcfEntryRecord record) {
         records.Add(record);
         UpdateHeaderAfterModification();
     }
 
     /// <summary>
-    /// Deletes all records (excluding header) and updates <see cref="ICFHeaderRecord.entryCount"/> and <see cref="ICFHeaderRecord.dataSize"/>.
+    /// Deletes all records (excluding header) and updates <see cref="IcfHeaderRecord.entryCount"/> and <see cref="IcfHeaderRecord.dataSize"/>.
     /// </summary>
     public void ClearRecords() {
         records.Clear();
@@ -176,8 +177,8 @@ public class InstallationConfigurationFile {
     }
 
     private void UpdateHeaderAfterModification() {
-        int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
-        int entryLen = Marshal.SizeOf<ICFEntryRecord>();
+        int headerLen = Marshal.SizeOf<IcfHeaderRecord>();
+        int entryLen = Marshal.SizeOf<IcfEntryRecord>();
 
         Header.entryCount = (ulong)records.Count;
         Header.dataSize = (uint)(headerLen + records.Count * entryLen);
@@ -188,8 +189,8 @@ public class InstallationConfigurationFile {
     /// </summary>
     /// <returns>A byte array of the serialized data (header + entries) of this ICF file.</returns>
     public byte[] Save() {
-        int headerLen = Marshal.SizeOf<ICFHeaderRecord>();
-        int entryLen = Marshal.SizeOf<ICFEntryRecord>();
+        int headerLen = Marshal.SizeOf<IcfHeaderRecord>();
+        int entryLen = Marshal.SizeOf<IcfEntryRecord>();
         long fullLen = headerLen + Header.GetEntryCount() * entryLen;
         LOG.LogTrace("Writing " + fullLen + " bytes (" + headerLen + " + " + entryLen + " * " + Header.GetEntryCount() + ")");
 

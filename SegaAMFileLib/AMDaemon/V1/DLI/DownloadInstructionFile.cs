@@ -448,8 +448,8 @@ public class DownloadInstructionFile {
             String filename = url.Split('/').Last();
 
             try {
-                InstallFile file = InstallFile.Parse(filename);
-                if (file.Type == InstallFile.FileType.Pack && section == "INSTALL") {
+                InstallFileName fileName = InstallFileName.Parse(filename);
+                if (fileName.Type == InstallFileName.FileType.Pack && section == "INSTALL") {
                     throw new IOException(key + i + " is a operating system image, which is not allowed here");
                 }
             } catch (ArgumentException e) {

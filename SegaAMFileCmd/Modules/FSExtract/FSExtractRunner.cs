@@ -16,21 +16,21 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
             EncryptionEnvironment.Initialize(opts.KeyFile);
 
             Program.CmdLog.LogInformation("Parsing filename: " + opts.FileName);
-            InstallFile file = InstallFile.Parse(opts.FileName);
+            InstallFileName fileName = InstallFileName.Parse(opts.FileName);
 
             Program.CmdLog.LogInformation("Reading " + opts.FileName + "...");
             Stream input = File.OpenRead(opts.FileName);
             FscryptFile container;
-            if (file.Type == InstallFile.FileType.App || file.Type == InstallFile.FileType.Pack) {
+            if (fileName.Type == InstallFileName.FileType.App || fileName.Type == InstallFileName.FileType.Pack) {
                 container = new AppFile(input, null, !opts.NoVerify); // TODO: parents
-            } else if (file.Type == InstallFile.FileType.Option) {
-                if (file.IsApm()) {
+            } else if (fileName.Type == InstallFileName.FileType.Option) {
+                if (fileName.IsApm()) {
                     container = new ApmOptFile(input);
                 } else {
                     container = new OptFile(input, null, !opts.NoVerify);
                 }
             } else {
-                throw new IOException("Unknown container: " + file.Type);
+                throw new IOException("Unknown container: " + fileName.Type);
             }
 
             if (!opts.NoExtract) {

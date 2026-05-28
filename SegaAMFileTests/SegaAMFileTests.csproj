@@ -15,6 +15,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="LTRData.DiscUtils.Ntfs" Version="1.0.82"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
         <PackageReference Include="NUnit" Version="3.14.0"/>
         <PackageReference Include="NUnit.Analyzers" Version="3.9.0"/>
@@ -79,12 +80,6 @@
 
     <ItemGroup>
       <Folder Include="TestFiles\tmp\" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="DiscUtils.Ntfs">
-            <HintPath>..\..\DiscUtils\Library\Debug\net10.0\DiscUtils.Ntfs.dll</HintPath>
-        </Reference>
     </ItemGroup>
 
 </Project>

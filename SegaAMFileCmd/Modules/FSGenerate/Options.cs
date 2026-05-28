@@ -47,7 +47,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSGenerate {
 
         [Value(0, Required = true, HelpText = "The container type (App, Opt, Pack)")]
         [UsedImplicitly]
-        public InstallFile.FileType Type { get; set; }
+        public InstallFileName.FileType Type { get; set; }
 
         [Value(1, Required = true, HelpText = "The 4-letter game ID. This is ignored on .pack files")]
         [UsedImplicitly]

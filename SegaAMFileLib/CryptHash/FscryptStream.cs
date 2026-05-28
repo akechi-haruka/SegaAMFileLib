@@ -4,8 +4,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.CryptHash;
 
+/// <summary>
+/// A stream to read from a fscrypt container.
+/// </summary>
 public class FscryptStream : Stream {
+    /// <summary>
+    /// The constant size of a "page" inside a fscrypt container.
+    /// </summary>
     public const int PAGE_SIZE = 4096;
+
     private static readonly ILogger LOG = Log.GetOrCreate("AppFsReader");
 
     private readonly Stream parentStream;
@@ -29,16 +36,15 @@ public class FscryptStream : Stream {
         LOG.LogDebug("Encryption IV: " + Hex.To(iv));
     }
 
+    /// <inheritdoc/>
     public override void Flush() {
         if (writeMode) {
-            /*if (pageBufferPosition < pageBuffer.Length) {
-                Write(new byte[pageBuffer.Length - pageBufferPosition]);
-            }*/
             WriteCurrentBuffer();
             parentStream.Flush();
         }
     }
 
+    /// <inheritdoc/>
     public override int Read(byte[] buffer, int offset, int count) {
         if (LOG.IsEnabled(LogLevel.Trace)) {
             LOG.LogTrace("Read " + Length + " bytes from " + position);
@@ -117,12 +123,14 @@ public class FscryptStream : Stream {
         pageBufferPosition = blockOffset;
     }
 
+    /// <inheritdoc/>
     public override void Close() {
         Flush();
         parentStream.Close();
         base.Close();
     }
 
+    /// <inheritdoc/>
     public override long Seek(long offset, SeekOrigin origin) {
         if (LOG.IsEnabled(LogLevel.Trace)) {
             LOG.LogTrace("Seek " + offset + " from " + origin);
@@ -141,10 +149,16 @@ public class FscryptStream : Stream {
         return position;
     }
 
+    /// <summary>
+    /// Not supported.
+    /// </summary>
+    /// <param name="value">Ignored.</param>
+    /// <exception cref="NotSupportedException">always</exception>
     public override void SetLength(long value) {
         throw new NotSupportedException();
     }
 
+    /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count) {
         // if write before first buffer happened, create buffer
         if (pageBuffer == null) {
@@ -184,20 +198,25 @@ public class FscryptStream : Stream {
         pageBufferSize = 0;
     }
 
+    /// Returns true
     public override bool CanRead {
         get { return true; }
     }
 
+    /// Returns <see cref="CanSeek"/> of the parent stream.
     public override bool CanSeek {
         get { return parentStream.CanSeek; }
     }
 
+    /// Returns true
     public override bool CanWrite {
         get { return true; }
     }
 
+    /// <inheritdoc/>
     public override long Length { get; }
 
+    /// <inheritdoc/>
     public override long Position {
         get { return position; }
         set {

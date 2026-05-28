@@ -18,13 +18,13 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
 
             InstallationConfigurationFile icf = new InstallationConfigurationFile(data, EncryptionEnvironment.Icf, opts.IgnoreCrc);
 
-            ICFHeaderRecord header = icf.Header;
+            IcfHeaderRecord header = icf.Header;
             Program.CmdLog.LogInformation("App ID: {a}", header.GetAppId());
             Program.CmdLog.LogInformation("Platform ID: {i}{g}", header.GetPlatformId(false), header.platformGeneration);
 
             for (int i = 0; i < icf.GetRecordCount(); i++) {
-                ICFEntryRecord record = icf.GetRecord(i);
-                if (record.typeFlags != ICFType.Option || !opts.IgnoreOption) {
+                IcfEntryRecord record = icf.GetRecord(i);
+                if (record.typeFlags != IcfType.Option || !opts.IgnoreOption) {
                     Program.CmdLog.LogInformation("Record " + i);
                     PrintRecordInformation(header, record);
                 }
@@ -33,13 +33,13 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             return 0;
         }
 
-        private static void PrintRecordInformation(ICFHeaderRecord header, ICFEntryRecord? record) {
+        private static void PrintRecordInformation(IcfHeaderRecord header, IcfEntryRecord? record) {
             if (record == null) {
                 Program.CmdLog.LogWarning("Record not found");
                 return;
             }
 
-            ICFEntryRecord value = record.Value;
+            IcfEntryRecord value = record.Value;
 
 
             String timeString;
@@ -63,7 +63,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             Program.CmdLog.LogInformation("- Date: {d}", timeString);
             Program.CmdLog.LogInformation("- AMFS file name: {f}", value.GetFileName(header));
 
-            if (value.typeFlags == ICFType.Patch) {
+            if (value.IsPatch()) {
                 Program.CmdLog.LogInformation("- Patch Version: {d}", value.patchVersion);
                 Program.CmdLog.LogInformation("- Patch Date: {d}", patchTimeString);
                 Program.CmdLog.LogInformation("- Patch Required Version: {d}", value.patchRequiredVersion);

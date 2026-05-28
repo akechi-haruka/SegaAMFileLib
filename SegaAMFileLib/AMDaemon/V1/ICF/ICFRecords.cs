@@ -8,7 +8,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.ICF;
 /// A record containing header (definition) data for a ICF file.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
-public unsafe struct ICFHeaderRecord {
+public unsafe struct IcfHeaderRecord {
     /// <summary>
     /// The CRC checksum of the entire ICF file.
     /// </summary>
@@ -22,7 +22,7 @@ public unsafe struct ICFHeaderRecord {
     private fixed byte padding[8];
 
     /// <summary>
-    /// The number of <see cref="ICFEntryRecord"/>s in the ICF file.
+    /// The number of <see cref="IcfEntryRecord"/>s in the ICF file.
     /// </summary>
     public ulong entryCount;
 
@@ -42,16 +42,16 @@ public unsafe struct ICFHeaderRecord {
     public byte platformGeneration;
 
     /// <summary>
-    /// The CRC checksum of all <see cref="ICFEntryRecord"/>s, which have <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set.
+    /// The CRC checksum of all <see cref="IcfEntryRecord"/>s, which have <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set.
     /// </summary>
     public uint entryCrc;
 
     private fixed byte padding_[28];
 
     /// <summary>
-    /// Returns the number of <see cref="ICFEntryRecord"/>s in the ICF file.
+    /// Returns the number of <see cref="IcfEntryRecord"/>s in the ICF file.
     /// </summary>
-    /// <returns>the number of <see cref="ICFEntryRecord"/>s in the ICF file.</returns>
+    /// <returns>the number of <see cref="IcfEntryRecord"/>s in the ICF file.</returns>
     public uint GetEntryCount() {
         return (uint)entryCount;
     }
@@ -101,62 +101,127 @@ public unsafe struct ICFHeaderRecord {
 /// <summary>
 /// A record containing an entry (version information) in an ICF file.
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
-public unsafe struct ICFEntryRecord {
+[StructLayout(LayoutKind.Explicit, Pack = 1, CharSet = CharSet.Ansi)]
+public unsafe struct IcfEntryRecord {
     /// <summary>
     /// Flags for the entry.
     /// </summary>
-    public EntryFlags entryFlags;
+    [FieldOffset(0)] public EntryFlags entryFlags;
+
+    /// <summary>
+    /// The sequence ID. For a base file, this is always zero. For a patch, this is 1 or higher.
+    /// </summary>
+    [FieldOffset(4)] public ushort sequenceId;
 
     /// <summary>
     /// The type of the entry. (app, option, ...)
     /// </summary>
-    public ICFType typeFlags;
+    [FieldOffset(6)] public IcfType typeFlags;
 
-    private fixed byte padding[24];
+    [FieldOffset(8)] private fixed byte padding[24];
 
     /// <summary>
-    /// The version this entry is depicting.
+    /// The option ID (ex. A123). This is only set on <see cref="IcfType.Option"/>.
     /// </summary>
-    public Version version;
+    [FieldOffset(32)] public fixed byte optionId[4];
+
+    /// <summary>
+    /// The version this entry is depicting. This is only set on non-<see cref="IcfType.Option"/>.
+    /// </summary>
+    [FieldOffset(32)] public Version version;
 
     /// <summary>
     /// The timestamp of when this entry was made.
     /// </summary>
-    public Timestamp timestamp;
+    [FieldOffset(36)] public Timestamp timestamp;
 
     /// <summary>
     /// The prerequisite version that is needed for this entry.
     /// </summary>
-    public Version requiredVersion;
+    [FieldOffset(44)] public Version requiredVersion;
 
     /// <summary>
-    /// The patch version this entry is depicting (zeroed if this is not a <see cref="ICFType.Patch"/> entry)
+    /// The patch version this entry is depicting (zeroed if this is not a <see cref="IsPatch"/> entry)
     /// </summary>
-    public Version patchVersion;
+    [FieldOffset(48)] public Version patchVersion;
 
     /// <summary>
-    /// The timestamp of when this patch entry was made (zeroed if this is not a <see cref="ICFType.Patch"/> entry)
+    /// The timestamp of when this patch entry was made (zeroed if this is not a <see cref="IsPatch"/> entry)
     /// </summary>
-    public Timestamp patchTimestamp;
+    [FieldOffset(52)] public Timestamp patchTimestamp;
 
     /// <summary>
-    /// The required patch version this entry is depicting (zeroed if this is not a <see cref="ICFType.Patch"/> entry)
+    /// The required patch version this entry is depicting (zeroed if this is not a <see cref="IsPatch"/> entry)
     /// </summary>
-    public Version patchRequiredVersion;
+    [FieldOffset(60)] public Version patchRequiredVersion;
 
-    public string GetFileName(ICFHeaderRecord header) {
-        if (typeFlags == ICFType.Patch || (typeFlags != ICFType.System && typeFlags != ICFType.App && typeFlags != ICFType.Option)) {
+    /// <summary>
+    /// Returns true if this record denotes a patch entry.
+    /// </summary>
+    /// <returns>true if this record denotes a patch entry.</returns>
+    public bool IsPatch() {
+        return sequenceId > 0;
+    }
+
+    /// <summary>
+    /// Converts the option ID in this record to a string. (ex. A123)
+    /// </summary>
+    /// <returns>the option ID in this record as a string.</returns>
+    public String GetOptionId() {
+        if (typeFlags != IcfType.Option) {
+            throw new ArgumentException("An ICF entry of type " + typeFlags + " does not have an option ID");
+        }
+
+        fixed (byte* ptr = optionId) {
+            return new String((sbyte*)ptr, 0, 4);
+        }
+    }
+
+    /// <summary>
+    /// Returns the AMFS file name for this ICF entry.
+    /// </summary>
+    /// <param name="header">The header that belongs to this ICF to retrieve app ID and other values.</param>
+    /// <returns>
+    /// A string in one of the following formats, dependent on <see cref="typeFlags"/>.
+    /// * <see cref="IcfType.System"/>: ACA_0100.00.00_20260527191604_0.pack
+    /// * <see cref="IcfType.App"/>: SDEJ_11.00.00_20260527193738_0.app
+    /// * <see cref="IcfType.App"/> (patch): SDEJ_11.52.00_20260527193739_1_11.00.00.app
+    /// * <see cref="IcfType.Option"/>: SDEJ_A001_20260527193738_0.opt
+    /// </returns>
+    public string GetFileName(IcfHeaderRecord header) {
+        if (typeFlags != IcfType.System && typeFlags != IcfType.App && typeFlags != IcfType.Option) {
             return null;
         }
 
-        return (typeFlags == ICFType.System ? header.GetPlatformId(false) : header.GetAppId()) +
+        if (typeFlags == IcfType.System) {
+            return header.GetPlatformId(false) +
+                   "_" +
+                   $"{version.major:D4}.{version.minor:D2}.{version.build:D2}" +
+                   "_" +
+                   timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
+                   "_" +
+                   sequenceId +
+                   typeFlags.GetExtension();
+        }
+
+        if (typeFlags == IcfType.Option) {
+            return header.GetAppId() +
+                   "_" +
+                   GetOptionId() +
+                   "_" +
+                   timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
+                   "_" +
+                   sequenceId +
+                   typeFlags.GetExtension();
+        }
+
+        return header.GetAppId() +
                "_" +
-               (typeFlags == ICFType.Option ? "A???" : (typeFlags == ICFType.System ? $"{version.major:D4}.{version.minor:D2}.{version.build:D2}" : $"{version.major:D}.{version.minor:D2}.{version.build:D2}")) + // TODO: option name in ICF file name?
+               $"{version.major:D}.{version.minor:D2}.{version.build:D2}" +
                "_" +
                timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
                "_" +
-               0 + // TODO: sequence?
+               sequenceId +
                typeFlags.GetExtension();
     }
 }
@@ -164,7 +229,7 @@ public unsafe struct ICFEntryRecord {
 /// <summary>
 /// The type of the ICF entry.
 /// </summary>
-public enum ICFType : uint {
+public enum IcfType : ushort {
     /// <summary>
     /// This entry depicts the system version (OS, drivers, etc.)
     /// Required version will match the entry version.
@@ -182,25 +247,14 @@ public enum ICFType : uint {
     /// Required version will be the game or previous option version.
     /// </summary>
     Option = 0x0002,
-
-    /// <summary>
-    /// Unknown.
-    /// </summary>
-    Patch = 0x0101,
-
-    /// <summary>
-    /// Empty record.
-    /// </summary>
-    Invalid = 0x0102,
 }
 
-static class ICFExtensions {
-    public static String GetExtension(this ICFType type) {
+static class IcfExtensions {
+    public static String GetExtension(this IcfType type) {
         return type switch {
-            ICFType.App => ".app",
-            ICFType.Option => ".opt",
-            ICFType.System => ".pack",
-            ICFType.Patch => "",
+            IcfType.App => ".app",
+            IcfType.Option => ".opt",
+            IcfType.System => ".pack",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
@@ -226,5 +280,8 @@ public enum EntryFlags : uint {
     /// </summary>
     Enabled2 = 0x0100,
 
+    /// <summary>
+    /// This entry is ready ("ordered"), but not installed yet.
+    /// </summary>
     Uncommited = 0x0200,
 }

@@ -71,16 +71,16 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite {
             };
             Timestamp gameTimestamp = new Timestamp(parsedGameTimestamp);
 
-            ICFEntryRecord systemEntry = new ICFEntryRecord {
-                typeFlags = ICFType.System,
+            IcfEntryRecord systemEntry = new IcfEntryRecord {
+                typeFlags = IcfType.System,
                 entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
                 timestamp = systemTimestamp,
                 requiredVersion = systemVersion,
                 version = systemVersion
             };
             icf.AddRecord(systemEntry);
-            ICFEntryRecord appEntry = new ICFEntryRecord {
-                typeFlags = ICFType.App,
+            IcfEntryRecord appEntry = new IcfEntryRecord {
+                typeFlags = IcfType.App,
                 entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
                 timestamp = gameTimestamp,
                 requiredVersion = systemVersion,

@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Haruka.Arcade.SegaAMFileLib.Misc;
 
-public static class Hex {
+static class Hex {
     public static byte[] From(string str) {
         return Enumerable.Range(0, str.Length / 2)
             .Select(x => Convert.ToByte(str.Substring(x * 2, 2), 16))
