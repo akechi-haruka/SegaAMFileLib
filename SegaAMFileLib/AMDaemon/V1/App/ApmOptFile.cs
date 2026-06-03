@@ -28,9 +28,6 @@ public class ApmOptFile : AppFile {
     /// <exception cref="IOException">error reading BootId or header data</exception>
     public ApmOptFile(Stream data, ApmOptFile parent = null) : base(data, parent, false) { // APM opts have no signature?
         Parent = parent;
-        if (!BootId.IsApmOption()) {
-            throw new ArgumentException("The loaded container is of type " + BootId.containerType + " and for game ID " + BootId.GetAppId() + ", not for APMv3");
-        }
     }
 
     /// <inheritdoc/>

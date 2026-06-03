@@ -79,14 +79,14 @@ public static class FscryptContainerGenerator {
         LOG.LogTrace("isExfat: " + isExfat);
         LOG.LogTrace("isAPM: " + fileNameInfo.IsApm());
 
-        const long minInnerFsSize = 80 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
+        const float fileSystemOverheadFactor = 1.15F;
+        const long minInnerFsSize = 4 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
         totalFileSize = Math.Max(minInnerFsSize, totalFileSize);
-        long innerFsSize = (long)(totalFileSize * 1.1F); // no idea how to calculate overhead per file
+        long innerFsSize = (long)(totalFileSize * fileSystemOverheadFactor); // no idea how to calculate overhead per file
         innerFsSize = MathUtilities.RoundUp(innerFsSize + 512 + 512, Sizes.Sector); // + MBR + NTFS header, then round up to full sector
         long innerFsMemory = innerFsSize + Sizes.Sector; // add sector for VHD footer
-        const long outerFsExtraSpace = minInnerFsSize; // extra space for the outer NTFS container holding the .vhd
-        long outerFsSize = MathUtilities.RoundUp(isBasicOpt ? innerFsSize : innerFsSize + outerFsExtraSpace, Sizes.Sector); // round up sector
-        long outerFsMemory = outerFsSize;
+        long outerFsSize = (long)(isBasicOpt ? innerFsSize : innerFsSize * fileSystemOverheadFactor); // no idea how to calculate overhead per file
+        long outerFsMemory = MathUtilities.RoundUp(outerFsSize, Sizes.Sector); // round up sector
         long payloadLength = outerFsMemory;
 
         LOG.LogDebug("Allocating " + innerFsMemory + " bytes (" + Util.BytesToString(innerFsMemory) + ") for new inner file system");
@@ -289,7 +289,7 @@ public static class FscryptContainerGenerator {
         foreach (string file in Directory.EnumerateFiles(path)) {
             string fileRelPath = Path.GetRelativePath(root, file);
             FileInfo fi = new FileInfo(file);
-            LOG.LogInformation("Writing " + fileRelPath + " (" + Util.BytesToString(fi.Length) + ") to file system");
+            LOG.LogInformation("Writing " + fileRelPath + " (" + fi.Length + ", " + Util.BytesToString(fi.Length) + ") to file system");
             using (Stream writer = fs.OpenFile(fileRelPath, FileMode.Create)) {
                 using (Stream reader = fi.OpenRead()) {
                     reader.CopyTo(writer);
