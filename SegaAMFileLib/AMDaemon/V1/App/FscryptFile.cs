@@ -179,9 +179,10 @@ public abstract class FscryptFile {
     /// </summary>
     /// <param name="targetDirectory">The directory to extract to. Will be created if it doesn't exist.</param>
     /// <param name="callback">An optional callback function that receives extraction progress.</param>
+    /// <param name="skipExisting">Skip files if they already exist, otherwise overwrite them</param>
     /// <exception cref="ArgumentException"><paramref name="targetDirectory"/> is invalid</exception>
     /// <exception cref="IOException">extraction failed (cause as inner exception)</exception>
-    public void ExtractTo(string targetDirectory, FsUtils.ProgressCallback callback = null) {
+    public void ExtractTo(string targetDirectory, FsUtils.ProgressCallback callback = null, bool skipExisting = false) {
         SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
         try {
             ArgumentException.ThrowIfNullOrWhiteSpace(targetDirectory);
@@ -193,7 +194,7 @@ public abstract class FscryptFile {
 
             LOG.LogDebug("Opening file system");
             DiscFileSystem optFs = OpenRealFilesystem();
-            FsUtils.ExtractRecursive(LOG, optFs.Root, targetDirectory, callback);
+            FsUtils.ExtractRecursive(LOG, optFs.Root, targetDirectory, callback, skipExisting);
         } catch (Exception ex) {
             LOG.LogError(ex, "Extraction to " + targetDirectory + " failed");
             throw new IOException("Extraction to " + targetDirectory + " failed", ex);

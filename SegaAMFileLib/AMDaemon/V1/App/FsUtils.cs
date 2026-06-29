@@ -42,7 +42,7 @@ public static class FsUtils {
         return tw.ToString();
     }
 
-    internal static void ExtractRecursive(ILogger log, DiscDirectoryInfo directory, String targetDirectory, ProgressCallback callback) {
+    internal static void ExtractRecursive(ILogger log, DiscDirectoryInfo directory, string targetDirectory, ProgressCallback callback, bool skipExisting) {
         log.LogDebug("Scanning directory: " + directory.FullName);
         List<DiscFileInfo> extractFileList = GatherFilesRecursive(directory);
         long totalSize = extractFileList.Sum(f => f.Length);
@@ -50,7 +50,7 @@ public static class FsUtils {
         int num = 0;
         long processedSize = 0;
         foreach (DiscFileInfo file in extractFileList) {
-            log.LogDebug("Extracting " + file.FullName);
+            log.LogInformation("Extracting " + file.FullName);
             try {
                 String targetFile = Path.Combine(targetDirectory, file.FullName);
                 DirectoryInfo parentPath = Directory.GetParent(targetFile);
@@ -61,8 +61,13 @@ public static class FsUtils {
                 }
 
                 callback?.Invoke(file.FullName, ++num, totalCount, file.Length, processedSize, totalSize);
-                using (FileStream target = File.Create(Path.Combine(targetDirectory, file.FullName))) {
-                    file.OpenRead().CopyTo(target);
+
+                if (!skipExisting || !File.Exists(targetFile)) {
+                    using (FileStream target = File.Create(targetFile)) {
+                        file.OpenRead().CopyTo(target);
+                    }
+                } else {
+                    log.LogDebug("File already exists, skipping");
                 }
 
                 processedSize += file.Length;

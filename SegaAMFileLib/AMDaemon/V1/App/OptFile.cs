@@ -113,10 +113,11 @@ public class OptFile : FscryptFile {
     /// </summary>
     /// <param name="targetDirectory">The directory to extract to. Will be created if it doesn't exist.</param>
     /// <param name="callback">An optional callback function that receives extraction progress.</param>
+    /// <param name="skipExisting">Skip files if they already exist, otherwise overwrite them</param>
     /// <exception cref="ArgumentException"><paramref name="targetDirectory"/> is invalid</exception>
     /// <exception cref="InvalidOperationException">if this container is not for APMv3</exception>
     /// <exception cref="IOException">extraction failed (cause as inner exception)</exception>
-    public void ExtractInnerApmTo(string targetDirectory, FsUtils.ProgressCallback callback = null) {
+    public void ExtractInnerApmTo(string targetDirectory, FsUtils.ProgressCallback callback = null, bool skipExisting = false) {
         if (!IsApmOption()) {
             throw new InvalidOperationException("This .opt file is not for APM");
         }
@@ -132,7 +133,7 @@ public class OptFile : FscryptFile {
 
             LOG.LogDebug("Opening file system");
             DiscFileSystem optFs = OpenInnerApmOptFilesystem();
-            FsUtils.ExtractRecursive(LOG, optFs.Root, targetDirectory, callback);
+            FsUtils.ExtractRecursive(LOG, optFs.Root, targetDirectory, callback, skipExisting);
         } catch (Exception ex) {
             LOG.LogError(ex, "Extraction to " + targetDirectory + " failed");
             throw new IOException("Extraction to " + targetDirectory + " failed", ex);

@@ -17,6 +17,15 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
         [Option("no-extract-inner", Required = false, HelpText = "Do not check extract fscrypt containers within the container")]
         public bool NoExtractInner { get; set; }
 
+        [Option('p', "parent", Required = false, HelpText = "Parent containers in ascending order.")]
+        public IEnumerable<string> Parents { get; set; }
+
+        [Option('i', "parent-inner", Required = false, HelpText = "Parent containers for inner containers in ascending order.")]
+        public IEnumerable<string> ParentsInner { get; set; }
+
+        [Option("skip", Required = false, HelpText = "Skip extracting files that already exist")]
+        public bool SkipExisting { get; set; }
+
         [Value(0, Required = true, HelpText = "The file name (.app, .opt, .pack)")]
         [UsedImplicitly]
         public string FileName { get; set; }

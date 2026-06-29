@@ -23,7 +23,8 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
 
             Program.CmdLog.LogInformation("Reading " + opts.FileName + "...");
             Stream input = File.OpenRead(opts.FileName);
-            FscryptFile container = DetectContainerType(input, opts, fileName, false);
+            FscryptFile parent = BuildParentChain(opts.Parents, false, opts.NoVerify);
+            FscryptFile container = DetectContainerType(input, opts.NoVerify, fileName, false, parent);
 
             if (!opts.NoExtract) {
                 if (opts.OutputDirectory == null) {
@@ -35,7 +36,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
                     Directory.CreateDirectory(opts.OutputDirectory);
                 }
 
-                container.ExtractTo(opts.OutputDirectory, Callback);
+                container.ExtractTo(opts.OutputDirectory, Callback, opts.SkipExisting);
 
                 if (innerContainers.Count > 0) {
                     Program.CmdLog.LogInformation("Detected " + innerContainers.Count + " inner containers");
@@ -49,7 +50,8 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
 
                             Program.CmdLog.LogInformation("Reading " + extractedInnerFile + "...");
                             Stream inputInner = File.OpenRead(extractedInnerFile);
-                            FscryptFile containerInner = DetectContainerType(inputInner, opts, fileNameInner, isApm);
+                            FscryptFile parentInner = BuildParentChain(opts.ParentsInner, isApm, opts.NoVerify);
+                            FscryptFile containerInner = DetectContainerType(inputInner, opts.NoVerify, fileNameInner, isApm, parentInner);
 
                             String outputInner = extractedInnerFile.Substring(0, extractedInnerFile.Length - 4);
 
@@ -57,7 +59,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
                                 Directory.CreateDirectory(outputInner);
                             }
 
-                            containerInner.ExtractTo(outputInner);
+                            containerInner.ExtractTo(outputInner, null, opts.SkipExisting);
                         }
                     }
                 } else {
@@ -70,18 +72,40 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
             return 0;
         }
 
-        private static FscryptFile DetectContainerType(Stream input, Options opts, InstallFileName fileName, bool isApm) {
+        private static FscryptFile BuildParentChain(IEnumerable<string> parents, bool isApm, bool noVerify) {
+            FscryptFile parentContainer = null;
+            Program.CmdLog.LogDebug(parents.Count() + " parent containers specified");
+            foreach (string parent in parents) {
+                if (!File.Exists(parent)) {
+                    throw new IOException("Parent file not found: " + parent);
+                }
+
+                Program.CmdLog.LogInformation("Reading parent container: " + parent);
+
+                InstallFileName fileNameParent = InstallFileName.Parse(parent, isApm);
+                Stream inputInner = File.OpenRead(parent);
+                if (fileNameParent.Type == InstallFileName.FileType.Option) {
+                    parentContainer = new ApmOptFile(inputInner, (ApmOptFile)parentContainer);
+                } else {
+                    parentContainer = new AppFile(inputInner, (AppFile)parentContainer, !noVerify);
+                }
+            }
+
+            return parentContainer;
+        }
+
+        private static FscryptFile DetectContainerType(Stream input, bool noVerify, InstallFileName fileName, bool isApm, FscryptFile parentChain) {
             FscryptFile container;
 
             if (fileName.Type == InstallFileName.FileType.App || fileName.Type == InstallFileName.FileType.Pack) {
-                container = new AppFile(input, null, !opts.NoVerify); // TODO: parents
+                container = new AppFile(input, (AppFile)parentChain, !noVerify);
             } else if (fileName.Type == InstallFileName.FileType.Option) {
                 if (isApm) {
                     Program.CmdLog.LogInformation("Detected APM .opt file");
-                    container = new ApmOptFile(input);
+                    container = new ApmOptFile(input, (ApmOptFile)parentChain);
                 } else {
                     Program.CmdLog.LogInformation("Detected regular .opt file");
-                    container = new OptFile(input, null, !opts.NoVerify);
+                    container = new OptFile(input, (OptFile)parentChain, !noVerify);
                 }
             } else {
                 throw new IOException("Unknown container: " + fileName.Type);
