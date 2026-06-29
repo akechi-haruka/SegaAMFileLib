@@ -73,6 +73,7 @@ public abstract class FscryptFile {
         BootId = BootId.FromEncryptedBytes(bootIdBytes);
 
         long filesystemOffset = BootId.GetOffsetOfFileSystem();
+        LOG.LogDebug("BootId game data: " + BootId.GetAppId() + " / " + BootId.GetPlatformId() + ", version=" + BootId.gameVersion + ", time=" + BootId.gameTimestamp);
         LOG.LogDebug("BootId block data: header=" + BootId.headerBlockCount + ", size=" + BootId.blockSize + ", total=" + BootId.blockCount + ", fsSize=" + BootId.GetFileSystemSize() + ", totalSize=" + BootId.GetFullContainerSize());
 
         if (verify) {

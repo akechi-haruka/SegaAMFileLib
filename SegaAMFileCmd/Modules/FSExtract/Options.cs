@@ -14,6 +14,9 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.FSExtract {
         [Option("no-extract", Required = false, HelpText = "Do not check extract files, just check the container")]
         public bool NoExtract { get; set; }
 
+        [Option("no-extract-inner", Required = false, HelpText = "Do not check extract fscrypt containers within the container")]
+        public bool NoExtractInner { get; set; }
+
         [Value(0, Required = true, HelpText = "The file name (.app, .opt, .pack)")]
         [UsedImplicitly]
         public string FileName { get; set; }

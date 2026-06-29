@@ -1,5 +1,7 @@
 using System.Globalization;
 using Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
+using Haruka.Common;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.Misc;
 
@@ -7,6 +9,8 @@ namespace Haruka.Arcade.SegaAMFileLib.Misc;
 /// A parsed name for an fscrypt container.
 /// </summary>
 public class InstallFileName {
+    private static readonly ILogger LOG = Log.GetOrCreate("InstallFileName");
+
     /// <summary>
     /// The type of the container (app/opt/pack).
     /// </summary>
@@ -43,6 +47,11 @@ public class InstallFileName {
     public Version RequiredVersion { get; internal set; }
 
     /// <summary>
+    /// The required option for this option. Only exists on APMv3 inner .opts.
+    /// </summary>
+    public string RequiredOption { get; set; }
+
+    /// <summary>
     /// Parses a file name.
     /// </summary>
     /// <example>
@@ -51,10 +60,11 @@ public class InstallFileName {
     /// * SBXX_A003_20130101010300_0.opt
     /// </example>
     /// <param name="filename">The filename to parse.</param>
+    /// <param name="apmOpt">Whether this file in an APM .opt file (which is actually an .app)</param>
     /// <returns>A parsed <see cref="InstallFileName"/>.</returns>
     /// <exception cref="ArgumentNullException">if filename is null.</exception>
     /// <exception cref="ArgumentException">if the filename is not a valid InstallFileName.</exception>
-    public static InstallFileName Parse(string filename) {
+    public static InstallFileName Parse(string filename, bool apmOpt = false) {
         ArgumentNullException.ThrowIfNull(filename);
         InstallFileName f = new InstallFileName();
         if (filename.EndsWith(".pack")) {
@@ -117,16 +127,22 @@ public class InstallFileName {
 
         if (fparts.Length > 4) {
             String version2 = fparts[4];
-            if (f.Type != FileType.App) {
-                throw new ArgumentException("Only app files can have a required version:" + filename);
-            }
+            if (apmOpt) {
+                f.RequiredOption = version2;
+            } else {
+                if (f.Type != FileType.App) {
+                    throw new ArgumentException("Only app files can have a required version:" + filename);
+                }
 
-            if (!Version.TryParse(version2, out Version parsedVersion)) {
-                throw new ArgumentException("Invalid version: " + version2);
-            }
+                if (!Version.TryParse(version2, out Version parsedVersion)) {
+                    throw new ArgumentException("Invalid version: " + version2);
+                }
 
-            f.RequiredVersion = parsedVersion;
+                f.RequiredVersion = parsedVersion;
+            }
         }
+
+        LOG.LogDebug("Parsed " + filename + " as " + f.Type + " / " + f.GameId);
 
         return f;
     }
