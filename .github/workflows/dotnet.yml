@@ -50,6 +50,13 @@ jobs:
           path: SEGAAMFileCmd/publish
           if-no-files-found: error
           overwrite: true
+      - name: Upload Lib nupkg
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: SEGAAMFileLib.nupkg
+          path: SEGAAMFileLib/bin/Release/*.nupkg
+          if-no-files-found: error
+          overwrite: true
   validate_nuget:
     runs-on: windows-latest
     needs: [ build ]
@@ -57,7 +64,7 @@ jobs:
       # Download the NuGet package created in the previous job
       - uses: actions/download-artifact@v8
         with:
-          name: Sega835Lib.nupkg
+          name: SEGAAMFileLib.nupkg
           path: ${{ env.NuGetDirectory }}
 
       - name: Install nuget validator
