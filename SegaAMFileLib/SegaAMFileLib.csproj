@@ -63,15 +63,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\LICENSE.txt">
-            <Link>LICENSE.txt</Link>
-        </None>
-        <None Include="..\logo.png">
-            <Link>logo.png</Link>
-        </None>
-        <None Include="..\README.md">
-            <Link>README.md</Link>
-        </None>
+        <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+        <None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
+        <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
     </ItemGroup>
     
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
