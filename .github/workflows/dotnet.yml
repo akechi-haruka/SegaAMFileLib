@@ -9,9 +9,13 @@ on:
   release:
     types:
       - published
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  NuGetDirectory: ${{github.workspace}}/nuget
 jobs:
   build:
-    runs-on: windows-2025-vs2026
+    runs-on: windows-latest
     permissions: write-all
     steps:
       - uses: actions/checkout@v5
@@ -46,6 +50,25 @@ jobs:
           path: SEGAAMFileCmd/publish
           if-no-files-found: error
           overwrite: true
+  validate_nuget:
+    runs-on: windows-latest
+    needs: [ build ]
+    steps:
+      # Download the NuGet package created in the previous job
+      - uses: actions/download-artifact@v8
+        with:
+          name: Sega835Lib.nupkg
+          path: ${{ env.NuGetDirectory }}
+
+      - name: Install nuget validator
+        run: dotnet tool update Meziantou.Framework.NuGetPackageValidation.Tool --global
+
+      # Validate metadata and content of the NuGet package
+      # https://www.nuget.org/packages/Meziantou.Framework.NuGetPackageValidation.Tool#readme-body-tab
+      # If some rules are not applicable, you can disable them
+      # using the --excluded-rules or --excluded-rule-ids option
+      - name: Validate package
+        run: meziantou.validate-nuget-package (Get-ChildItem "${{ env.NuGetDirectory }}/*.nupkg") --excluded-rules Symbols
   deploy:
     permissions:
         contents: write
@@ -58,6 +81,11 @@ jobs:
           path: download
           merge-multiple: true
           skip-decompress: true
+      - name: Publish NuGet package
+        run: |
+          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+              dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
       - name: Add binaries to release
         uses: softprops/action-gh-release@v3
         with:
