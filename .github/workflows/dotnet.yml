@@ -96,8 +96,6 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           path: ${{ env.NuGetDirectory }}
-          merge-multiple: true
-          skip-decompress: true
       - name: Publish NuGet package
         run: |
           foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
