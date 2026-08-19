@@ -6,6 +6,9 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  release:
+    types:
+      - published
 jobs:
   build:
     runs-on: windows-2025-vs2026
@@ -47,4 +50,20 @@ jobs:
           path: SEGAAMFileCmd/publish
           if-no-files-found: error
           overwrite: true
-              
+  deploy:
+    permissions:
+        contents: write
+    if: github.event_name == 'release'
+    runs-on: windows-latest
+    needs: [ build ]
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: download
+          merge-multiple: true
+          skip-decompress: true
+      - name: Add binaries to release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            download/*
