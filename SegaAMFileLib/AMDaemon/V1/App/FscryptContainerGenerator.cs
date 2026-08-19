@@ -79,14 +79,15 @@ public static class FscryptContainerGenerator {
         LOG.LogTrace("isExfat: " + isExfat);
         LOG.LogTrace("isAPM: " + fileNameInfo.IsApm());
 
-        const float fileSystemOverheadFactor = 1.15F;
+        const float innerFileSystemOverheadFactor = 1.5F;
+        const float outerFileSystemOverheadFactor = 2F;
         const long minInnerFsSize = 4 * 1024 * 1024; // weird things happen if we try to create a micro file system, enforce 4MB minimum
         totalFileSize = Math.Max(minInnerFsSize, totalFileSize);
-        long innerFsSize = (long)(totalFileSize * fileSystemOverheadFactor); // no idea how to calculate overhead per file
+        long innerFsSize = (long)(totalFileSize * innerFileSystemOverheadFactor); // no idea how to calculate overhead per file
         innerFsSize = MathUtilities.RoundUp(innerFsSize + 512 + 512, Sizes.Sector); // + MBR + NTFS header, then round up to full sector
         long innerFsMemory = innerFsSize + Sizes.Sector; // add sector for VHD footer
-        long outerFsSize = (long)(isBasicOpt ? innerFsSize : innerFsSize * fileSystemOverheadFactor); // no idea how to calculate overhead per file
-        long outerFsMemory = MathUtilities.RoundUp(outerFsSize, Sizes.Sector); // round up sector
+        long outerFsSize = (long)(isBasicOpt ? innerFsMemory : innerFsMemory * innerFileSystemOverheadFactor); // no idea how to calculate overhead per file
+        long outerFsMemory = MathUtilities.RoundUp((long)(outerFsSize * outerFileSystemOverheadFactor), Sizes.Sector); // round up sector
         long payloadLength = outerFsMemory;
 
         LOG.LogDebug("Allocating " + innerFsMemory + " bytes (" + Util.BytesToString(innerFsMemory) + ") for new inner file system");
@@ -110,7 +111,7 @@ public static class FscryptContainerGenerator {
 
         innerFsBytes = FixBpbForIv(innerFsBytes, fileNameInfo);
 
-        LOG.LogInformation(FsUtils.DumpNtfsFileSystemProperties(innerFsBytes));
+        LOG.LogTrace(FsUtils.DumpNtfsFileSystemProperties(innerFsBytes));
         LOG.LogTrace("Initial 256 bytes of created inner filesystem:\n" + Hex.Dump(innerFsBytes, 256));
 
         LOG.LogDebug("Allocating " + outerFsMemory + " bytes (" + Util.BytesToString(outerFsMemory) + ") for container payload (including outer file system)");
@@ -134,7 +135,7 @@ public static class FscryptContainerGenerator {
 
         outerFsBytes = FixBpbForIv(outerFsBytes, fileNameInfo);
 
-        LOG.LogInformation(FsUtils.DumpNtfsFileSystemProperties(outerFsBytes));
+        LOG.LogTrace(FsUtils.DumpNtfsFileSystemProperties(outerFsBytes));
         LOG.LogTrace("Initial 256 bytes of created outer filesystem:\n" + Hex.Dump(outerFsBytes, 256));
 
         BootId bootId = new BootId() {
