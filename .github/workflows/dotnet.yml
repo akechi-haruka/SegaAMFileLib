@@ -88,13 +88,18 @@ jobs:
           path: download
           merge-multiple: true
           skip-decompress: true
-      - name: Publish NuGet package
-        run: |
-          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
-              dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
-          }
       - name: Add binaries to release
         uses: softprops/action-gh-release@v3
         with:
           files: |
             download/*
+      - uses: actions/download-artifact@v8
+        with:
+          path: ${{ env.NuGetDirectory }}
+          merge-multiple: true
+          skip-decompress: true
+      - name: Publish NuGet package
+        run: |
+          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+              dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
