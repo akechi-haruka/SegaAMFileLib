@@ -1,7 +1,7 @@
-using System.Runtime.InteropServices;
 using DiscUtils;
 using DiscUtils.Ntfs;
 using DiscUtils.Partitions;
+using DiscUtils.Streams;
 using DiscUtils.Vhd;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
 using Haruka.Arcade.SegaAMFileLib.Misc;
@@ -10,128 +10,66 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 
-public class AppFile {
-    private static readonly byte[] OPTION_HEADER = Hex.From("eb769045584641542020200000000000");
-    private static readonly byte[] APP_HEADER = Hex.From("eb52904e544653202020200010010000");
-
+/// <summary>
+/// .app file container.
+/// </summary>
+public class AppFile : FscryptFile {
     private static readonly ILogger LOG = Log.GetOrCreate("App ");
 
-    static AppFile() {
-        VirtualDiskManager.RegisterVirtualDiskTypes(typeof(Disk).Assembly);
-    }
-
-    public BootId BootId { get; }
+    /// <summary>
+    /// The parent app container.
+    /// </summary>
     public AppFile Parent { get; }
-    public byte[] Key { get; }
-    public byte[] Iv { get; }
-    public Stream SourceStream { get; }
 
-    public AppFile(Stream data, AppFile parent = null) {
-        ArgumentNullException.ThrowIfNull(data);
-
-        SourceStream = data;
+    /// <summary>
+    /// Loads an .app fscrypt container from a stream.
+    /// </summary>
+    /// <param name="data">The stream to read from</param>
+    /// <param name="parent">The parent container in case this container is a patch of another container.</param>
+    /// <param name="verify">Whether to verify the container or not</param>
+    /// <exception cref="ArgumentNullException">if data is null</exception>
+    /// <exception cref="ArgumentException">there given stream is invalid</exception>
+    /// <exception cref="IOException">error reading BootId or header data</exception>
+    public AppFile(Stream data, AppFile parent = null, bool verify = true) : base(data, verify) {
         Parent = parent;
+        GenerateEncryptionKeys();
+    }
 
-        int bootIdLen = Marshal.SizeOf<BootId>();
-
-        if (data.Length < bootIdLen) {
-            throw new ArgumentException("data given is " + data.Length + " bytes, but at least " + bootIdLen + " are expected");
-        }
-
-        byte[] bootIdBytes = new byte[bootIdLen];
-        data.ReadExactly(bootIdBytes);
-        bootIdBytes = Aes128Cbc.DecryptFromEnv(bootIdBytes, EncryptionEnvironment.BootId);
-        BootId = StructUtils.FromBytes<BootId>(bootIdBytes);
-
-        BootId.Verify();
-
-        if (BootId.containerType == ContainerType.Option) {
-            Key = EncryptionEnvironment.Option.Key;
-            Iv = EncryptionEnvironment.Option.Iv;
-        } else {
-            EncryptionParameters env = EncryptionEnvironment.GetGame(BootId.GetAppId());
-            Key = env.Key;
-            Iv = env.Iv;
-        }
-
-        long filesystemOffset = BootId.GetOffsetOfFileSystem();
-        LOG.LogDebug("File system starts at " + filesystemOffset);
-        data.Seek(filesystemOffset, SeekOrigin.Begin);
-
+    /// <summary>
+    /// Generates the encryption keys for this container.
+    /// </summary>
+    protected virtual void GenerateEncryptionKeys() {
         byte[] initialBytes = new byte[16];
-        data.ReadExactly(initialBytes);
-        Iv = AppFsEncryption.CalculateFileIv(Key, GetFileSystemHeader(), initialBytes);
-        LOG.LogInformation("Custom IV was derived to be " + Hex.To(Iv));
+        SourceStream.ReadExactly(initialBytes);
 
-        data.Seek(-initialBytes.Length, SeekOrigin.Current);
+        EncryptionParameters env = EncryptionEnvironment.GetGame(BootId.GetAppId());
+        Key = env.Key;
+        Iv = FscryptUtils.CalculateFileIv(Key, NTFS_HEADER, initialBytes);
+        LOG.LogDebug("Custom IV was derived to be " + Hex.To(Iv));
+
+        SourceStream.Seek(-initialBytes.Length, SeekOrigin.Current);
     }
 
-    private byte[] GetFileSystemHeader() {
-        return BootId.containerType == ContainerType.Option ? OPTION_HEADER : APP_HEADER;
-    }
-
-    public void ExtractTo(string targetDirectory, FsUtils.ProgressCallback callback = null) {
-        SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
-        try {
-            ArgumentException.ThrowIfNullOrWhiteSpace(targetDirectory);
-            LOG.LogInformation("Extracting app file to: " + targetDirectory);
-            if (!Directory.Exists(targetDirectory)) {
-                LOG.LogDebug("Creating directory: " + targetDirectory);
-                Directory.CreateDirectory(targetDirectory);
-            }
-
-            if (BootId.containerType == ContainerType.Option) {
-                ExtractOptionTo(targetDirectory, callback);
-            } else {
-                ExtractAppTo(targetDirectory, callback);
-            }
-        } catch (Exception ex) {
-            LOG.LogError(ex, "Extraction to " + targetDirectory + " failed");
-            throw new IOException("Extraction to " + targetDirectory + " failed", ex);
-        }
-    }
-
-    private void ExtractOptionTo(string targetDirectory, FsUtils.ProgressCallback callback) {
-        throw new NotImplementedException();
-    }
-
-    private void ExtractAppTo(string targetDirectory, FsUtils.ProgressCallback callback) {
-        LOG.LogDebug("Opening app file as NTFS");
-        DiscFileSystem vhdFs = OpenRealFilesystem();
-        FsUtils.ExtractRecursive(LOG, vhdFs.Root, targetDirectory, callback);
-    }
-
-    public DiscFileInfo OpenInnerVhd() {
-        SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
-        AppFsStream decryptedFilesystemStream = new AppFsStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
-
-        string innerVhdFile = "internal_" + BootId.sequenceNumber + ".vhd";
-        NtfsFileSystem appFs = new NtfsFileSystem(decryptedFilesystemStream);
-        DiscFileInfo innerVhd = appFs.Root.GetFiles().FirstOrDefault(f => f.Name == innerVhdFile);
-        if (innerVhd == null) {
-            LOG.LogError("Could not find requested file inside NTFS file system: " + innerVhdFile);
-            LOG.LogInformation("Files in root: " + String.Join(',', appFs.Root.GetFiles()));
-            throw new IOException("Could not find file inside NTFS file system: " + innerVhdFile);
-        }
-
-        return innerVhd;
-    }
-
-    public DiscFileSystem OpenRealFilesystem() {
+    /// <inheritdoc/>
+    public override DiscFileSystem OpenRealFilesystem() {
         LOG.LogDebug("Opening filesystem");
 
         DiscFileInfo innerVhd = OpenInnerVhd();
-        DiskImageFile parent = null;
-
-        if (Parent != null) {
-            parent = new DiskImageFile(Parent.OpenInnerVhd().OpenRead());
-        }
+        List<DiskImageFile> vhdChain = new List<DiskImageFile>();
+        AppFile current = this;
+        do {
+            vhdChain.Add(new DiskImageFile(current.OpenInnerVhd().OpenRead()));
+            LOG.LogInformation("- File chain [" + vhdChain.Count + "]: " + current.BootId);
+            current = current.Parent;
+        } while (current != null);
 
         LOG.LogInformation("Opening inner vhd file (" + innerVhd.FullName + ", " + innerVhd.Length + " bytes)");
-        Disk virtualDisk = new Disk(innerVhd.FileSystem, innerVhd.FullName, FileAccess.Read, parent);
+        Disk virtualDisk = new Disk(vhdChain, Ownership.None);
         if (virtualDisk == null) {
             throw new IOException("Could not determine disk format for inner .vhd file");
         }
+
+        LOG.LogTrace("VHD disk geometry: " + virtualDisk.Geometry);
 
         PartitionTable partitionTable = virtualDisk.Partitions;
         if (partitionTable == null) {
@@ -145,17 +83,28 @@ public class AppFile {
         return new NtfsFileSystem(partitionTable.Partitions[0].Open());
     }
 
-    public byte[] ReadAndDecryptWholeFile() {
+    private DiscFileInfo OpenInnerVhd() {
         SourceStream.Seek(BootId.GetOffsetOfFileSystem(), SeekOrigin.Begin);
+        FscryptStream decryptedFilesystemStream = new FscryptStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
 
-        LOG.LogDebug("Allocating " + BootId.GetFileSystemSize() + " to read whole FS to memory");
-        byte[] buf = new byte[BootId.GetFileSystemSize()];
+        if (LOG.IsEnabled(LogLevel.Trace)) {
+            byte[] buf = new byte[256];
+            decryptedFilesystemStream.ReadExactly(buf);
+            LOG.LogTrace("Initial 256 bytes of decrypted filesystem:\n" + Hex.Dump(buf, 256));
+            decryptedFilesystemStream.Seek(0, SeekOrigin.Begin);
+            LOG.LogTrace(FsUtils.DumpNtfsFileSystemProperties(decryptedFilesystemStream));
+            decryptedFilesystemStream.Seek(0, SeekOrigin.Begin);
+        }
 
-        AppFsStream decryptedFilesystemStream = new AppFsStream(SourceStream, BootId.GetFileSystemSize(), Key, Iv);
+        string innerVhdFile = "internal_" + BootId.sequenceNumber + ".vhd";
+        NtfsFileSystem appFs = new NtfsFileSystem(decryptedFilesystemStream);
+        DiscFileInfo innerVhd = appFs.Root.GetFiles().FirstOrDefault(f => f.Name == innerVhdFile);
+        if (innerVhd == null) {
+            LOG.LogError("Could not find requested file inside NTFS file system: " + innerVhdFile);
+            LOG.LogInformation("Files in root: " + String.Join(',', appFs.Root.GetFiles()));
+            throw new IOException("Could not find file inside NTFS file system: " + innerVhdFile);
+        }
 
-        LOG.LogInformation("Reading " + buf.Length + " bytes");
-        decryptedFilesystemStream.ReadExactly(buf);
-
-        return buf;
+        return innerVhd;
     }
 }

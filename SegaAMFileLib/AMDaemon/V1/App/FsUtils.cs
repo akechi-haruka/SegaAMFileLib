@@ -8,12 +8,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;
 
-public class FsUtils {
+/// <summary>
+/// Misc. things for fscrypt containers.
+/// </summary>
+public static class FsUtils {
+    /// <summary>
+    /// The callback type used in various extraction functions.
+    /// </summary>
     public delegate void ProgressCallback(string file, int num, int total, long currentSize, long processedSize, long totalSize);
 
     private delegate object SpanPattern<T>(ReadOnlySpan<T> s);
 
-    public static String DumpNtfsFileSystemProperties(Stream data) {
+    internal static String DumpNtfsFileSystemProperties(Stream data) {
         byte[] buf = new byte[512];
         data.ReadExactly(buf);
         return DumpNtfsFileSystemProperties(buf);
@@ -21,7 +27,7 @@ public class FsUtils {
 
     [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
-    public static String DumpNtfsFileSystemProperties(byte[] data) {
+    internal static String DumpNtfsFileSystemProperties(byte[] data) {
         // what the fuck
         ParameterExpression param = Expression.Parameter(typeof(ReadOnlySpan<byte>));
         Type type = typeof(NtfsFileSystem).Assembly.GetType("DiscUtils.Ntfs.BiosParameterBlock");
@@ -36,8 +42,7 @@ public class FsUtils {
         return tw.ToString();
     }
 
-
-    public static void ExtractRecursive(ILogger log, DiscDirectoryInfo directory, String targetDirectory, ProgressCallback callback) {
+    internal static void ExtractRecursive(ILogger log, DiscDirectoryInfo directory, string targetDirectory, ProgressCallback callback, bool skipExisting) {
         log.LogDebug("Scanning directory: " + directory.FullName);
         List<DiscFileInfo> extractFileList = GatherFilesRecursive(directory);
         long totalSize = extractFileList.Sum(f => f.Length);
@@ -45,7 +50,7 @@ public class FsUtils {
         int num = 0;
         long processedSize = 0;
         foreach (DiscFileInfo file in extractFileList) {
-            log.LogDebug("Extracting " + file.FullName);
+            log.LogInformation("Extracting " + file.FullName);
             try {
                 String targetFile = Path.Combine(targetDirectory, file.FullName);
                 DirectoryInfo parentPath = Directory.GetParent(targetFile);
@@ -56,8 +61,13 @@ public class FsUtils {
                 }
 
                 callback?.Invoke(file.FullName, ++num, totalCount, file.Length, processedSize, totalSize);
-                using (FileStream target = File.Create(Path.Combine(targetDirectory, file.FullName))) {
-                    file.OpenRead().CopyTo(target);
+
+                if (!skipExisting || !File.Exists(targetFile)) {
+                    using (FileStream target = File.Create(targetFile)) {
+                        file.OpenRead().CopyTo(target);
+                    }
+                } else {
+                    log.LogDebug("File already exists, skipping");
                 }
 
                 processedSize += file.Length;

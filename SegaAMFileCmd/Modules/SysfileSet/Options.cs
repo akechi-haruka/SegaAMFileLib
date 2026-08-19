@@ -8,7 +8,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
         [UsedImplicitly]
         public string FileName { get; set; }
 
-        [Value(1, Required = true, HelpText = "The operation to perform (InsertCredits,RemoveCredits,SetCredits,SetFreePlay)")]
+        [Value(1, Required = true, HelpText = "The operation to perform (InsertCredits,RemoveCredits,SetCredits,SetFreePlay,ResetEMoneyAuth)")]
         [UsedImplicitly]
         public SetAction Action { get; set; }
 
@@ -21,6 +21,7 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
         InsertCredits,
         RemoveCredits,
         SetCredits,
-        SetFreePlay
+        SetFreePlay,
+        ResetEMoneyAuth
     }
 }

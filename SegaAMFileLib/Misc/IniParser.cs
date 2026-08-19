@@ -3,7 +3,7 @@ using System.Collections;
 namespace Haruka.Arcade.SegaAMFileLib.Misc;
 
 class IniParser {
-    private Hashtable keyPairs = new Hashtable();
+    private OrderedDictionary<SectionPair, string> keyPairs = new OrderedDictionary<SectionPair, string>();
     private static readonly char[] SEPARATOR = new char[] { '=' };
 
     private struct SectionPair {
@@ -63,7 +63,7 @@ class IniParser {
         sectionPair.Section = sectionName;
         sectionPair.Key = settingName;
 
-        return (String)keyPairs[sectionPair];
+        return (String)keyPairs.GetValueOrDefault(sectionPair);
     }
 
     /// <summary>

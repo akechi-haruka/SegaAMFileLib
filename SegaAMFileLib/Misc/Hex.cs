@@ -2,20 +2,21 @@ using System.Text;
 
 namespace Haruka.Arcade.SegaAMFileLib.Misc;
 
-public static class Hex {
+static class Hex {
     public static byte[] From(string str) {
         return Enumerable.Range(0, str.Length / 2)
             .Select(x => Convert.ToByte(str.Substring(x * 2, 2), 16))
             .ToArray();
     }
 
-    public static string To(byte[] iv) {
-        return BitConverter.ToString(iv).Replace("-", "");
+    public static string To(byte[] bytes) {
+        return BitConverter.ToString(bytes).Replace("-", "");
     }
 
     // https://stackoverflow.com/a/26206519
-    public static string Dump(byte[] bytes, int length = Int32.MaxValue, int bytesPerLine = 16) {
+    public static string Dump(byte[] bytes, int length = Int32.MaxValue, int offset = 0) {
         if (bytes == null) return "<null>";
+        const int bytesPerLine = 16;
         int bytesLength = bytes.Length;
 
         char[] hexChars = "0123456789ABCDEF".ToCharArray();
@@ -34,10 +35,10 @@ public static class Hex {
                          + Environment.NewLine.Length; // Carriage return and line feed (should normally be 2)
 
         char[] line = (new String(' ', lineLength - 2) + Environment.NewLine).ToCharArray();
-        int expectedLines = (bytesLength + bytesPerLine - 1) / bytesPerLine;
+        int expectedLines = ((length < Int32.MaxValue ? length : bytesLength) + bytesPerLine - 1) / bytesPerLine;
         StringBuilder result = new StringBuilder(expectedLines * lineLength);
 
-        for (int i = 0; i < Math.Min(bytesLength, length); i += bytesPerLine) {
+        for (int i = offset; i < Math.Min(bytesLength, offset + length); i += bytesPerLine) {
             line[0] = hexChars[(i >> 28) & 0xF];
             line[1] = hexChars[(i >> 24) & 0xF];
             line[2] = hexChars[(i >> 20) & 0xF];

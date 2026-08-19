@@ -6,11 +6,11 @@
         <Nullable>disable</Nullable>
         <Title>Sega AM File Library</Title>
         <Description>Allows reading and writing of common file formats used by Sega's Arcade systems</Description>
-        <Copyright>2025 Akechi Haruka</Copyright>
+        <Copyright>2025-2026 Akechi Haruka</Copyright>
         <Company>Haruka Akechi</Company>
         <AssemblyVersion></AssemblyVersion>
         <RootNamespace>Haruka.Arcade.SegaAMFileLib</RootNamespace>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
         <PackageTags>Arcade;File Formats</PackageTags>
@@ -26,8 +26,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="LTRData.DiscUtils.ExFat" Version="1.0.80"/>
-        <PackageReference Include="LTRData.DiscUtils.Ntfs" Version="1.0.80"/>
+        <PackageReference Include="LTRData.DiscUtils.ExFat" Version="1.0.82"/>
+        <PackageReference Include="LTRData.DiscUtils.Ntfs" Version="1.0.82"/>
+        <PackageReference Include="LTRData.DiscUtils.Vhd" Version="1.0.82"/>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
@@ -45,12 +46,6 @@
         <None Update="Haruka.Common.Settings.local.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="DiscUtils.Vhd">
-            <HintPath>..\..\DiscUtils\Library\Debug\net10.0\DiscUtils.Vhd.dll</HintPath>
-        </Reference>
     </ItemGroup>
     
     <PropertyGroup Condition="'$(Configuration)'=='Release'">

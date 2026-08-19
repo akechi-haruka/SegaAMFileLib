@@ -8,14 +8,33 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [Option("order-time", Required = false, HelpText = "Date/Time when the files should be downloaded")]
         [UsedImplicitly]
         public DateTime? OrderTime { get; set; }
-        
+
         [Option("release-time", Required = false, HelpText = "Date/Time when the files should be installed")]
         [UsedImplicitly]
         public DateTime? ReleaseTime { get; set; }
-        
+
         [Option("report-url", Required = false, HelpText = "Download progress reporting URL")]
         [UsedImplicitly]
         public string ReportUrl { get; set; }
+
+        [Option('e', "exists", Required = false, HelpText = "The filenames of files that must exist for this download")]
+        [UsedImplicitly]
+        public IEnumerable<string> Exists { get; set; }
+
+        [Option("base-icf", Required = false, HelpText = "Generates filenames that must exist for this download from an existing ICF file")]
+        [UsedImplicitly]
+        public string BaseIcfFileName { get; set; }
+
+        [Option("icf-system-only", Required = false, HelpText = "Only use the system record to generate EXIST from an existing ICF file")]
+        [UsedImplicitly]
+        public bool IcfSystemOnly { get; set; }
+
+        [Option('k', "key", Required = false, HelpText = "The path to keys.txt, used to decrypt ICF files.", Default = "keys.txt")]
+        [UsedImplicitly]
+        public String KeyFile { get; set; }
+
+        [Option("ignore-crc", Required = false, Hidden = true)]
+        public bool IgnoreCrc { get; set; }
 
         [Value(0, Required = true, HelpText = "The type of the DLI file (App,Opt)")]
         [UsedImplicitly]
@@ -29,8 +48,8 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.DLIWrite {
         [UsedImplicitly]
         public string OutputFile { get; set; }
 
-        [Value(3, Required = true, HelpText = "The file(s) to download")]
+        [Value(3, Required = true, HelpText = "The full URL(s) to the file(s) to download")]
         [UsedImplicitly]
-        public string[] Urls { get; set; }
+        public IEnumerable<string> Urls { get; set; }
     }
 }

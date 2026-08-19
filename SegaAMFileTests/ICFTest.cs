@@ -25,13 +25,13 @@ public class ICFTest {
 
     [Test]
     public void T01_Structs() {
-        CheckSize(typeof(ICFHeaderRecord), 0x40);
-        CheckSize(typeof(ICFEntryRecord), 0x40);
+        CheckSize(typeof(IcfHeaderRecord), 0x40);
+        CheckSize(typeof(IcfEntryRecord), 0x40);
     }
 
     private void ValidateICF(InstallationConfigurationFile icf) {
         Assert.That(icf.GetRecordCount(), Is.LessThan(99), "Too many ICF records");
-        ICFEntryRecord? sr = icf.GetSystemRecord();
+        IcfEntryRecord? sr = icf.GetSystemRecord();
         Assert.That(sr, Is.Not.Null, "No system record");
         Assert.That(sr.Value.requiredVersion, Is.EqualTo(sr.Value.version), "ICF system version unequal required version");
         Assert.That(icf.GetAppRecord(), Is.Not.Null, "No app record");
@@ -83,16 +83,16 @@ public class ICFTest {
 
         Timestamp time = Timestamp.Now();
 
-        ICFEntryRecord systemEntry = new ICFEntryRecord {
-            typeFlags = ICFType.System,
+        IcfEntryRecord systemEntry = new IcfEntryRecord {
+            typeFlags = IcfType.System,
             entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
             timestamp = time,
             requiredVersion = ver,
             version = ver
         };
         icf.AddRecord(systemEntry);
-        ICFEntryRecord appEntry = new ICFEntryRecord {
-            typeFlags = ICFType.App,
+        IcfEntryRecord appEntry = new IcfEntryRecord {
+            typeFlags = IcfType.App,
             entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
             timestamp = time,
             requiredVersion = ver,

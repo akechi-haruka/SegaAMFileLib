@@ -132,11 +132,12 @@ public class DownloadInstructionFile {
     /// <param name="type">The type of DLI (app, opt).</param>
     /// <returns>A string containing the DLI in .ini form.</returns>
     public String Write(DliType type) {
+        VerifyBeforeWriting(type);
         IniParser output = new IniParser(new string[0]);
         output.AddSetting(COMMON_SECTION, "DLFORMAT", Common.DlFormat.ToString("F2", CultureInfo.InvariantCulture));
         output.AddSetting(COMMON_SECTION, "GAME_ID", Common.GameId);
-        output.AddSetting(COMMON_SECTION, "RELEASE_TIME", Common.ReleaseTime.ToUniversalTime());
-        output.AddSetting(COMMON_SECTION, "ORDER_TIME", Common.OrderTime.ToUniversalTime());
+        output.AddSetting(COMMON_SECTION, "RELEASE_TIME", Common.ReleaseTime.ToUniversalTime().ToString("s", CultureInfo.InvariantCulture) + "Z");
+        output.AddSetting(COMMON_SECTION, "ORDER_TIME", Common.OrderTime.ToUniversalTime().ToString("s", CultureInfo.InvariantCulture) + "Z");
         output.AddSetting(COMMON_SECTION, "PART_SIZE", String.Join(',', Common.PartSize));
         output.AddSetting(COMMON_SECTION, "INTERVAL", String.Join(',', Common.IsdnDownloadInterval));
         output.AddSetting(COMMON_SECTION, "DSL_INTERVAL", String.Join(',', Common.AdslDownloadInterval));
@@ -148,7 +149,7 @@ public class DownloadInstructionFile {
         }
 
         if (Common.GameDescription != null) {
-            output.AddSetting(COMMON_SECTION, "GAME_DESC", Common.GameDescription);
+            output.AddSetting(COMMON_SECTION, "GAME_DESC", '"' + Common.GameDescription + '"');
         }
 
         if (type == DliType.Opt && Common.ReleaseType != null) {
@@ -198,7 +199,7 @@ public class DownloadInstructionFile {
         if (Foreground != null) {
             output.AddSetting(FOREGROUND_SECTION, "PART_SIZE", Foreground.PartSize);
             output.AddSetting(FOREGROUND_SECTION, "INTERVAL", Foreground.Interval);
-            output.AddSetting(FOREGROUND_SECTION, "ORDER_TIME", Foreground.OrderTime.ToUniversalTime());
+            output.AddSetting(FOREGROUND_SECTION, "ORDER_TIME", Foreground.OrderTime.ToUniversalTime().ToString("s", CultureInfo.InvariantCulture) + "Z");
             output.AddSetting(FOREGROUND_SECTION, "RELEASE_CONFIRM", Foreground.ReleaseConfirm ? 1 : 0);
             for (int i = 0; i < Foreground.ImageUrls.Length; i++) {
                 string url = Foreground.ImageUrls[i];
@@ -207,6 +208,26 @@ public class DownloadInstructionFile {
         }
 
         return output.SaveSettings();
+    }
+
+    private void VerifyBeforeWriting(DliType type) {
+        if (Common.InstallUrls.Length > 0) {
+            if (Common.ExistUrls.Length < 2) {
+                throw new ArgumentException("A DLI must have at least one .pack EXIST and one .app EXIST (you cannot download a sequence 0 .app file)");
+            }
+
+            if (!Common.ExistUrls.Any(s => s.EndsWith(".pack"))) {
+                throw new ArgumentException("A DLI must have at least one .pack EXIST");
+            }
+
+            if (!Common.ExistUrls.Any(s => s.EndsWith(".app"))) {
+                throw new ArgumentException("A DLI must have at least one .app EXIST");
+            }
+
+            if (Common.InstallUrls.Any(s => s.EndsWith("_0.app"))) {
+                throw new ArgumentException("A DLI cannot download a base .app");
+            }
+        }
     }
 
     private static String CreateCloudString(CloudDownload[] c) {
@@ -427,8 +448,8 @@ public class DownloadInstructionFile {
             String filename = url.Split('/').Last();
 
             try {
-                InstallFile file = InstallFile.Parse(filename);
-                if (file.Type == InstallFile.FileType.Pack && section == "INSTALL") {
+                InstallFileName fileName = InstallFileName.Parse(filename);
+                if (fileName.Type == InstallFileName.FileType.Pack && section == "INSTALL") {
                     throw new IOException(key + i + " is a operating system image, which is not allowed here");
                 }
             } catch (ArgumentException e) {
@@ -786,7 +807,7 @@ public class DownloadInstructionFile {
     /// </summary>
     public class ForegroundInfo {
         /// <summary>
-        /// The chunk size for which HTTP requests are sent. This array must have exactly 3 elements and values must be a power of 2.
+        /// The chunk size for which HTTP requests are sent. The value must be a power of 2.
         /// </summary>
         public uint PartSize { get; set; }
 

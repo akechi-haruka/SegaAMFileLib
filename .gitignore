@@ -3,7 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-*.csproj.DotSettings
 *.sln.DotSettings.user
 
 keys.txt
@@ -13,3 +12,4 @@ tmp/
 *.pack
 *.ntfs
 *.exfat
+ago.exe

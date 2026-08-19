@@ -14,9 +14,12 @@ namespace Haruka.Arcade.SegaAMFileLib.CryptHash {
         /// Calculates the CRC32 for the given byte array. Remember that if the CRC field is part of this array, it should be zeroed out.
         /// </summary>
         /// <param name="data">The byte array to use.</param>
+        /// <param name="offset">The array offset to start from.</param>
+        /// <param name="length">The length of the part to calculate the CRC32 of.</param>
+        /// <param name="initial">The initial value for the CRC operation. Set this if your previous operation was partial.</param>
         /// <returns>The computed CRC32 checksum.</returns>
-        public static uint CalcCrc32(byte[] data) {
-            return INSTANCE.GetCrc32(data);
+        public static uint CalcCrc32(byte[] data, int? offset = null, int? length = null, uint initial = 0) {
+            return INSTANCE.GetCrc32(data, offset ?? 0, length ?? data.Length, initial);
         }
 
         /// <summary>
@@ -42,9 +45,9 @@ namespace Haruka.Arcade.SegaAMFileLib.CryptHash {
     class Crc32Managed {
         private static uint[] table;
 
-        public uint GetCrc32(byte[] data) {
-            uint crc = 0xFFFFFFFF;
-            for (int i = 0; i < data.Length; i++) {
+        public uint GetCrc32(byte[] data, int offset, int length, uint initial = 0) {
+            uint crc = initial ^ 0xFFFFFFFF;
+            for (int i = offset; i < length; i++) {
                 byte index = (byte)(((crc) & 0xFF) ^ data[i]);
                 crc = (crc >> 8) ^ table[index];
             }
