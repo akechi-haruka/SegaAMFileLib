@@ -27,6 +27,9 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet {
                 case SetAction.SetFreePlay:
                     sysfile.Credit.creditConfig.operation = opts.Value != 0 ? CreditOperation.OPERATION_COIN : CreditOperation.OPERATION_DEFAULT;
                     break;
+                case SetAction.ResetEMoneyAuth:
+                    data = SysData.WipeRecord<DataRecordEmoney>(data);
+                    break;
             }
 
             Program.CmdLog.LogInformation("Success: {a}", opts.Action);

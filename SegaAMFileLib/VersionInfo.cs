@@ -1,14 +1,13 @@
 ﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("SegaAMFileTests")]
+[assembly: InternalsVisibleTo("SegaAMFileCmd")]
 
 namespace Haruka.Arcade.SegaAMFileLib {
-
     /// <summary>
     /// Version information about the library.
     /// </summary>
     public class VersionInfo {
-
         /// <summary>
         /// The library name.
         /// </summary>
@@ -23,6 +22,5 @@ namespace Haruka.Arcade.SegaAMFileLib {
         /// The global API version. This will change only if base API is modified and incompatible with previous versions.
         /// </summary>
         public const int LIB_API_VERSION = 1;
-
     }
 }

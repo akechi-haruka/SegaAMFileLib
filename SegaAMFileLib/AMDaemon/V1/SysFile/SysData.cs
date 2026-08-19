@@ -261,6 +261,44 @@ public class SysData {
     }
 
     /// <summary>
+    /// Wipes a given record type in the raw file data from one slot or all slots. (which can then be saved back to a file)
+    /// </summary>
+    /// <param name="data">The raw file data to read from.</param>
+    /// <param name="slot">The backup slot to wipe (0-4) or all.</param>
+    /// <typeparam name="T">The type of record to wipe.</typeparam>
+    /// <returns>The updated raw file data.</returns>
+    /// <exception cref="ArgumentException">If the record type is not known.</exception>
+    /// <exception cref="IndexOutOfRangeException">If the backup slot does not exist.</exception>
+    /// <exception cref="IOException">If there is an error serializing the data.</exception>
+    public static byte[] WipeRecord<T>(byte[] data, int? slot = null) where T : struct {
+        List<BackupRecordDefinition> records = RECORDS.Where(record => record.Structure == typeof(T)).ToList();
+        if (records.Count == 0) {
+            throw new ArgumentException("no such record: " + typeof(T));
+        }
+
+        LOG.LogInformation("Wiping record " + typeof(T) + " in slot " + (slot ?? -1));
+
+        List<BackupRecordDefinition> recordsToWipe = new List<BackupRecordDefinition>();
+        if (slot != null) {
+            recordsToWipe.Add(records[slot.Value]);
+        } else {
+            for (int i = 0; i < 4 && i < records.Count; i++) {
+                recordsToWipe.Add(records[i]);
+            }
+        }
+
+        byte[] struc = StructUtils.GetBytes(new T());
+
+        foreach (BackupRecordDefinition record in recordsToWipe) {
+            Array.Copy(struc, 0, data, record.StartAddress, record.Size);
+            LOG.LogTrace("Wiped " + record.Structure + " in SysData");
+        }
+
+
+        return data;
+    }
+
+    /// <summary>
     /// Creates a new blank sysfile.dat.
     /// </summary>
     /// <returns>a blank sysfile.dat</returns>

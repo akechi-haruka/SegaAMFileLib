@@ -6,8 +6,10 @@ using Haruka.Arcade.SegaAMFileCmd.Modules.FSGenerate;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFCommit;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFView;
 using Haruka.Arcade.SegaAMFileCmd.Modules.ICFWrite;
+using Haruka.Arcade.SegaAMFileCmd.Modules.RawExtract;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSet;
 using Haruka.Arcade.SegaAMFileCmd.Modules.SysfileSync;
+using Haruka.Arcade.SegaAMFileCmd.Modules.VhdExtract;
 using Haruka.Common;
 using Haruka.Common.Configuration;
 using Microsoft.Extensions.Logging;
@@ -20,8 +22,8 @@ namespace Haruka.Arcade.SegaAMFileCmd {
         private static int Main(string[] args) {
             try {
                 return Parser.Default.ParseArguments
-                        <Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, Modules.FSExtract.Options, Modules.FSGenerate.Options, Modules.ICFCommit.Options>(args)
-                    .MapResult<Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, Modules.FSExtract.Options, Modules.FSGenerate.Options, Modules.ICFCommit.Options, int>(
+                        <Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, Modules.FSExtract.Options, Modules.VhdExtract.Options, Modules.RawExtract.Options, Modules.FSGenerate.Options, Modules.ICFCommit.Options>(args)
+                    .MapResult<Options, Modules.SysfileSync.Options, Modules.ICFView.Options, Modules.ICFWrite.Options, Modules.DLIWrite.Options, Modules.BootIdRead.Options, Modules.FSExtract.Options, Modules.VhdExtract.Options, Modules.RawExtract.Options, Modules.FSGenerate.Options, Modules.ICFCommit.Options, int>(
                         SysfileSetRunner.Run,
                         SysfileSyncRunner.Run,
                         ICFViewRunner.Run,
@@ -29,6 +31,8 @@ namespace Haruka.Arcade.SegaAMFileCmd {
                         DLIWriteRunner.Run,
                         BootIdRunner.Run,
                         FSExtractRunner.Run,
+                        VhdExtractRunner.Run,
+                        RawExtractRunner.Run,
                         FSGenerateRunner.Run,
                         ICFCommitRunner.Run,
                         _ => 1);
