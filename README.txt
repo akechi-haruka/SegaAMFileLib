@@ -11,11 +11,13 @@ Nightly builds / downloads: https://nightly.link/akechi-haruka/SEGAAMFileLib/wor
 What can the library and application be used for?
 
 * Write and read the following file types:
- - ICF1/ICF2
+ - ICF files (ICF1)
  - sysfile.dat
  - dliApp.ini, dliOpt.ini
- - *.app (read-only)
- - *.opt (read-only)
+* Extract the following container formats:
+ - *.app
+ - *.opt
+ - *.vhd (with partitions or raw)
 
 ----------------
 
