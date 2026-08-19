@@ -34,7 +34,7 @@ jobs:
          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         run: |
-          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows10.0.18362.0
+          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows
           dotnet publish .\SEGAAMFileCmd\SEGAAMFileCmd.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileCmd\Properties\PublishProfiles\SegaAMFileCmd.pubxml
       - name: Upload Lib NET 10
         uses: actions/upload-artifact@v7
