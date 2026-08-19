@@ -74,7 +74,7 @@ jobs:
         contents: write
     if: github.event_name == 'release'
     runs-on: windows-latest
-    needs: [ build ]
+    needs: [ validate_nuget ]
     steps:
       - uses: actions/download-artifact@v8
         with:
