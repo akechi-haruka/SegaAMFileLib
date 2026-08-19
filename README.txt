@@ -14,9 +14,8 @@ What can the library and application be used for?
  - ICF1/ICF2
  - sysfile.dat
  - dliApp.ini, dliOpt.ini
-
-TODOs:
-* *.app, *.opt
+ - *.app (read-only)
+ - *.opt (read-only)
 
 ----------------
 
