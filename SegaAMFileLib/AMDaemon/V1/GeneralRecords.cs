@@ -88,6 +88,24 @@ public unsafe struct Timestamp {
     public override string ToString() {
         return ToDateTime().ToString(CultureInfo.InvariantCulture);
     }
+
+    /// <summary>
+    /// Converts the value of the current Timestamp object to its equivalent string representation using the specified culture-specific format information.
+    /// </summary>
+    /// <param name="ci">The culture to use.</param>
+    /// <returns>A string representation of value of the current Timestamp object as specified by the culture.</returns>
+    public string ToString(CultureInfo ci) {
+        return ToDateTime().ToString(ci);
+    }
+
+    /// <summary>
+    /// Creates a Timestamp from a FileTime.
+    /// </summary>
+    /// <param name="timestamp">The timestamp to use.</param>
+    /// <returns>A Timestamp with the given value.</returns>
+    public static Timestamp From(ulong timestamp) {
+        return new Timestamp(DateTime.FromFileTimeUtc((long)timestamp));
+    }
 }
 
 /// <summary>
