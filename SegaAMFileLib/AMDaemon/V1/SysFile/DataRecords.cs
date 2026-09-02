@@ -317,7 +317,8 @@ public unsafe struct ErrorBody {
     /// <summary>
     /// The app ID the error occurred in (ex. SDAA)
     /// </summary>
-    public fixed byte gameId[4];
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
+    public String gameId;
     /// <summary>
     /// The error number that has occurred. (ex. 8401)
     /// </summary>
