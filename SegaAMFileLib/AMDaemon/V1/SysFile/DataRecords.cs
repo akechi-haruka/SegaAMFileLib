@@ -770,6 +770,18 @@ public unsafe struct DataRecordDipsw {
     /// </summary>
     public byte value;
     private fixed byte padding[503];
+
+    public bool GetDipSwitchValue(int i) {
+        return (value & (1 << i)) != 0;
+    }
+
+    public void SetDipSwitchValue(int i, bool on) {
+        if (on) {
+            value |= (byte)(1 << i);
+        } else {
+            value &= (byte)~(1 << i);
+        }
+    }
 }
 
 /// <summary>
