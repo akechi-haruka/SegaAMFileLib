@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 
@@ -294,5 +295,17 @@ public unsafe struct BootId {
         bootId.Verify();
 
         return bootId;
+    }
+
+    /// <summary>
+    /// Reads the game name from the string table. This is unreliable.
+    /// </summary>
+    /// <returns>The name of the game this bootId depicts.</returns>
+    public string GetGameName() {
+        
+        fixed (byte* ptr = strings) {
+            return Encoding.UTF8.GetString(ptr, 0x3F);
+        }
+
     }
 }

@@ -148,6 +148,28 @@ public class InstallFileName {
     }
 
     /// <summary>
+    /// Parses a file name.
+    /// </summary>
+    /// <example>
+    /// * AAV_0001.00.00_20130101010100_0.pack<br />
+    /// * SBXX_1.01.00_20130101010200_1_1.00.00.app<br />
+    /// * SBXX_A003_20130101010300_0.opt
+    /// </example>
+    /// <param name="fileName">The filename to parse.</param>
+    /// <param name="file">A parsed <see cref="InstallFileName"/> or null if parsing failed.</param>
+    /// <param name="apmOpt">Whether this file in an APM .opt file (which is actually an .app)</param>
+    /// <returns>true if parsing was successful, false if not.</returns>
+    public static bool TryParse(string fileName, out InstallFileName file, bool apmOpt = false) {
+        try {
+            file = Parse(fileName, apmOpt);
+            return true;
+        } catch {
+            file = null;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Creates an InstallFileName from a <see cref="BootId"/>.
     /// </summary>
     /// <param name="bootId">The BootId to use.</param>
@@ -279,9 +301,10 @@ public class InstallFileName {
     /// <summary>
     /// Converts the given InstallFileName to a string that represents the installation file.
     /// </summary>
+    /// <param name="withExtension">whether to include the file extension (.app, ...) in the string.</param>
     /// <example>SBXX_1.01.00_20130101010200_1_1.00.00.app</example>
     /// <returns>a string representation of this object.</returns>
-    public string GetFileName() {
+    public string GetFileName(bool withExtension = true) {
         return (Type == FileType.Pack ? "ACA" : GameId) + // TODO: stop hardcoding ACA everywhere
                "_" +
                (Type == FileType.Option ? OptionName : (Type == FileType.Pack ? $"{VersionNumber.Major:D4}.{VersionNumber.Minor:D2}.{VersionNumber.Build:D2}" : $"{VersionNumber.Major:D}.{VersionNumber.Minor:D2}.{VersionNumber.Build:D2}")) +
@@ -290,7 +313,7 @@ public class InstallFileName {
                "_" +
                Sequence +
                (RequiredVersion != null ? "_" + $"{RequiredVersion.Major:D}.{RequiredVersion.Minor:D2}.{RequiredVersion.Build:D2}" : "") +
-               GetContainerFileExtension();
+               (withExtension ? GetContainerFileExtension() : "");
     }
 
     /// <summary>
