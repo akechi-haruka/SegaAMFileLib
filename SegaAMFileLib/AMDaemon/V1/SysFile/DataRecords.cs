@@ -797,7 +797,10 @@ public unsafe struct DataRecordCreditClear {
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
-    private fixed byte padding[504];
+    /// <summary>
+    /// Data layout unknown.
+    /// </summary>
+    public fixed byte unknown[504];
 }
 
 /// <summary>

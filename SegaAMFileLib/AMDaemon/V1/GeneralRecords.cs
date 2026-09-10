@@ -106,6 +106,10 @@ public unsafe struct Timestamp {
     public static Timestamp From(ulong timestamp) {
         return new Timestamp(DateTime.FromFileTimeUtc((long)timestamp));
     }
+
+    public ulong ToFileTime() {
+        return (ulong)ToDateTime().ToFileTimeUtc();
+    }
 }
 
 /// <summary>
