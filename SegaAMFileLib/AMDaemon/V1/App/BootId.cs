@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
-using System.Text;
 using Haruka.Arcade.SegaAMFileLib.CryptHash;
+using System.Text;
 using Haruka.Arcade.SegaAMFileLib.Misc;
 
 namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.App;

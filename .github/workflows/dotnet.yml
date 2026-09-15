@@ -6,6 +6,13 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  release:
+    types:
+      - published
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  NuGetDirectory: ${{github.workspace}}/nuget
 jobs:
   build:
     runs-on: windows-2025-vs2026
@@ -14,10 +21,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           submodules: true
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -31,7 +34,7 @@ jobs:
          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         run: |
-          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows10.0.18362.0
+          dotnet publish .\SEGAAMFileLib\SEGAAMFileLib.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileLib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows
           dotnet publish .\SEGAAMFileCmd\SEGAAMFileCmd.csproj --configuration Release /p:PublishProfile=.\SEGAAMFileCmd\Properties\PublishProfiles\SegaAMFileCmd.pubxml
       - name: Upload Lib NET 10
         uses: actions/upload-artifact@v7
@@ -47,4 +50,54 @@ jobs:
           path: SEGAAMFileCmd/publish
           if-no-files-found: error
           overwrite: true
-              
+      - name: Upload Lib nupkg
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: SEGAAMFileLib.nupkg
+          path: SEGAAMFileLib/bin/Release/*.nupkg
+          if-no-files-found: error
+          overwrite: true
+  validate_nuget:
+    runs-on: windows-latest
+    needs: [ build ]
+    steps:
+      # Download the NuGet package created in the previous job
+      - uses: actions/download-artifact@v8
+        with:
+          name: SEGAAMFileLib.nupkg
+          path: ${{ env.NuGetDirectory }}
+
+      - name: Install nuget validator
+        run: dotnet tool update Meziantou.Framework.NuGetPackageValidation.Tool --global
+
+      # Validate metadata and content of the NuGet package
+      # https://www.nuget.org/packages/Meziantou.Framework.NuGetPackageValidation.Tool#readme-body-tab
+      # If some rules are not applicable, you can disable them
+      # using the --excluded-rules or --excluded-rule-ids option
+      - name: Validate package
+        run: meziantou.validate-nuget-package (Get-ChildItem "${{ env.NuGetDirectory }}/*.nupkg") --excluded-rules Symbols
+  deploy:
+    permissions:
+        contents: write
+    if: github.event_name == 'release'
+    runs-on: windows-latest
+    needs: [ validate_nuget ]
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: download
+          merge-multiple: true
+          skip-decompress: true
+      - name: Add binaries to release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            download/*
+      - uses: actions/download-artifact@v8
+        with:
+          path: ${{ env.NuGetDirectory }}
+      - name: Publish NuGet package
+        run: |
+          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+              dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
