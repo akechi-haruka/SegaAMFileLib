@@ -169,6 +169,38 @@ public class InstallationConfigurationFile {
     }
 
     /// <summary>
+    /// Creates a new record based on the given <see cref="InstallFileName"/> and updates <see cref="IcfHeaderRecord.entryCount"/> and <see cref="IcfHeaderRecord.dataSize"/>.
+    /// </summary>
+    /// <param name="fileName">The file name to use.</param>
+    /// <exception cref="ArgumentException">If the InstallFileName has an unknown type</exception>
+    public void AddRecord(InstallFileName fileName) {
+        IcfType type;
+        if (fileName.Type == InstallFileName.FileType.App) {
+            type = IcfType.App;
+        } else if (fileName.Type == InstallFileName.FileType.Option) {
+            type = IcfType.Option;
+        } else if (fileName.Type == InstallFileName.FileType.Pack) {
+            type = IcfType.System;
+        } else {
+            throw new ArgumentException("Unknown type: " + fileName.Type);
+        }
+
+        IcfEntryRecord entry = new IcfEntryRecord() {
+            typeFlags = type,
+            entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
+            requiredVersion = fileName.RequiredVersion != null ? new Version(fileName.RequiredVersion) : Version.Empty,
+            version = fileName.VersionNumber != null ? new Version(fileName.VersionNumber) : Version.Empty,
+            timestamp = new Timestamp(fileName.Date),
+            sequenceId = fileName.Sequence
+        };
+        if (type == IcfType.Option) {
+            entry.SetOptionId(fileName.OptionName);
+        }
+
+        AddRecord(entry);
+    }
+
+    /// <summary>
     /// Deletes all records (excluding header) and updates <see cref="IcfHeaderRecord.entryCount"/> and <see cref="IcfHeaderRecord.dataSize"/>.
     /// </summary>
     public void ClearRecords() {
