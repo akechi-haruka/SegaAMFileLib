@@ -116,7 +116,7 @@ public unsafe struct Timestamp {
 /// A record containing a version number.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
-public record struct Version {
+public record struct Version : IComparable<Version> {
     /// <summary>
     /// Constant version 0.0.0
     /// </summary>
@@ -176,5 +176,35 @@ public record struct Version {
     /// <returns>A new System.Version with the same values.</returns>
     public System.Version ToVersion() {
         return new System.Version(major, minor, build);
+    }
+
+    public int CompareTo(Version other) {
+        int majorComparison = major.CompareTo(other.major);
+        if (majorComparison != 0) {
+            return majorComparison;
+        }
+
+        int minorComparison = minor.CompareTo(other.minor);
+        if (minorComparison != 0) {
+            return minorComparison;
+        }
+
+        return build.CompareTo(other.build);
+    }
+
+    public static bool operator >(Version left, Version right) {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <(Version left, Version right) {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >=(Version left, Version right) {
+        return left.CompareTo(right) >= 0;
+    }
+
+    public static bool operator <=(Version left, Version right) {
+        return left.CompareTo(right) <= 0;
     }
 }

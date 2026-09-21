@@ -130,7 +130,7 @@ public class InstallationConfigurationFile {
     /// Gets all enabled records of the given type.
     /// </summary>
     /// <param name="type">The type to search for.</param>
-    /// <returns>The <see cref="IcfEntryRecord"/>s matching the given type, which also has <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set,.</returns>
+    /// <returns>The <see cref="IcfEntryRecord"/>s matching the given type, which also has <see cref="EntryFlags.Enabled1"/> and <see cref="EntryFlags.Enabled2"/> set.</returns>
     public IcfEntryRecord[] GetRecords(IcfType type) {
         return records.Where(r => (r.entryFlags & (EntryFlags.Enabled1 | EntryFlags.Enabled2)) != 0 && r.typeFlags == type).ToArray();
     }
