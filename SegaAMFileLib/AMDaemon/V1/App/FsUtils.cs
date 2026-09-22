@@ -63,9 +63,9 @@ public static class FsUtils {
                 callback?.Invoke(file.FullName, ++num, totalCount, file.Length, processedSize, totalSize);
 
                 if (!skipExisting || !File.Exists(targetFile)) {
-                    using FileStream target = File.Create(targetFile);
-                    using Stream source = file.OpenRead();
-                    source.CopyTo(target);
+                    using (FileStream target = File.Create(targetFile)) {
+                        file.OpenRead().CopyTo(target);
+                    }
                 } else {
                     log.LogDebug("File already exists, skipping");
                 }
