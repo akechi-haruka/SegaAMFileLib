@@ -109,16 +109,16 @@ public unsafe struct IcfEntryRecord {
     [FieldOffset(0)] public EntryFlags entryFlags;
 
     /// <summary>
-    /// The sequence ID. For a base file, this is always zero. For a patch, this is 1 or higher.
-    /// </summary>
-    [FieldOffset(4)] public ushort sequenceId;
-
-    /// <summary>
     /// The type of the entry. (app, option, ...)
     /// </summary>
-    [FieldOffset(6)] public IcfType typeFlags;
+    [FieldOffset(4)] public IcfType typeFlags;
 
-    [FieldOffset(8)] private fixed byte padding[24];
+    /// <summary>
+    /// The sequence ID. For a base file, this is always zero. For a patch, this is 1 or higher.
+    /// </summary>
+    [FieldOffset(5)] public ushort sequenceId;
+
+    [FieldOffset(6)] private fixed byte padding[26];
 
     /// <summary>
     /// The option ID (ex. A123). This is only set on <see cref="IcfType.Option"/>.
@@ -229,24 +229,24 @@ public unsafe struct IcfEntryRecord {
 /// <summary>
 /// The type of the ICF entry.
 /// </summary>
-public enum IcfType : ushort {
+public enum IcfType : byte {
     /// <summary>
     /// This entry depicts the system version (OS, drivers, etc.)
     /// Required version will match the entry version.
     /// </summary>
-    System = 0x0000,
+    System = 0x00,
 
     /// <summary>
     /// This entry depicts the app (game) version.
     /// Required version will be the system version.
     /// </summary>
-    App = 0x0001,
+    App = 0x01,
 
     /// <summary>
     /// This entry depicts an option version.
     /// Required version will be the game or previous option version.
     /// </summary>
-    Option = 0x0002,
+    Option = 0x02,
 }
 
 static class IcfExtensions {
