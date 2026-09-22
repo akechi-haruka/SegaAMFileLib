@@ -23,7 +23,7 @@ public static class FscryptContainerGenerator {
     /// Creates a fscrypt container.
     /// </summary>
     /// <param name="sourceFilesPath">The path to a directory containing files to add into this container.</param>
-    /// <param name="outputPath">The directory to save the container to. If the directory does not exist, the </param>
+    /// <param name="outputPath">The directory to save the container to.</param>
     /// <param name="fileNameInfo">The <see cref="InstallFileName"/> that names this file.</param>
     /// <param name="systemVersion">The system version this container is for. May be null to zero the value. On a <see cref="InstallFileName.FileType.Pack"/> this value must be equal to the container version itself (<see cref="InstallFileName.VersionNumber"/>.</param>
     /// <param name="requiredTimestamp">The timestamp of the parent container this container is a patch for, or null if this is not a patch</param>
@@ -32,7 +32,7 @@ public static class FscryptContainerGenerator {
     /// <param name="unknown">Usually 1, sometimes 0. Don't know.</param>
     /// <param name="overrideEncryption">Override the parameters specified in the <see cref="EncryptionEnvironment"/> with the given parameters, or null.</param>
     /// <exception cref="ArgumentException">argument combinations are invalid, sourceFilesPath is null</exception>
-    /// <exception cref="DirectoryNotFoundException">input directory or output parent directory does not exist</exception>
+    /// <exception cref="DirectoryNotFoundException">input directory or output directory does not exist</exception>
     /// <exception cref="NotSupportedException">container type can not be created yet</exception>
     /// <exception cref="IOException">encryption error, filesystem creation error, write error or others</exception>
     /// <returns>The full path to the created file.</returns>
@@ -43,7 +43,7 @@ public static class FscryptContainerGenerator {
             throw new DirectoryNotFoundException("Input path not found: " + sourceFilesPath);
         }
 
-        if (!(new DirectoryInfo(outputPath).Parent?.Exists ?? false)) {
+        if (!Directory.Exists(outputPath)) {
             throw new DirectoryNotFoundException("Output path not found: " + outputPath);
         }
 

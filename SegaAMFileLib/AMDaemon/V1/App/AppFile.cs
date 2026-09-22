@@ -107,4 +107,9 @@ public class AppFile : FscryptFile {
 
         return innerVhd;
     }
+
+    public override void Close() {
+        base.Close();
+        Parent?.Close();
+    }
 }

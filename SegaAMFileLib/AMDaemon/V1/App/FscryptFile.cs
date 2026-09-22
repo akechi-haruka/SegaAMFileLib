@@ -200,7 +200,14 @@ public abstract class FscryptFile {
             throw new IOException("Extraction to " + targetDirectory + " failed", ex);
         }
     }
-    
+
+    /// <summary>
+    /// Closes the I/O stream for this Fscrypt file. All functions will fail afterwards.
+    /// </summary>
+    public virtual void Close() {
+        SourceStream.Close();
+    }
+
     /// <summary>
     /// Creates a FscryptFile based on the given <see cref="InstallFileName"/>.
     /// </summary>
