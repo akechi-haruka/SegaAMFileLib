@@ -224,6 +224,16 @@ public unsafe struct IcfEntryRecord {
                sequenceId +
                typeFlags.GetExtension();
     }
+
+    /// <summary>
+    /// Sets the Option ID of this record.
+    /// </summary>
+    /// <param name="id">The option ID. Must be 4 characters long.</param>
+    public void SetOptionId(string id) {
+        fixed (byte* ptr = optionId) {
+            StructUtils.Copy(id, ptr, 4);
+        }
+    }
 }
 
 /// <summary>

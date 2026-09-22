@@ -15,6 +15,20 @@
         <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib/</RepositoryUrl>
         <PackageTags>Arcade;File Formats</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
+        <Title>SEGA Amusement File Library</Title>
+        <Authors>Haruka Akechi and contributors</Authors>
+        <Company/>
+        <Description>Libary to read/write SEGA arcade file formats</Description>
+        <Copyright>(c) 2024-2026 Haruka Akechi and contributors</Copyright>
+        <RepositoryUrl>https://github.com/akechi-haruka/SegaAMFileLib</RepositoryUrl>
+        <PackageTags>Arcade;Formats</PackageTags>
+        <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <PackageProjectUrl>https://github.com/akechi-haruka/SegaAMFileLib/</PackageProjectUrl>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <EnablePackageValidation>true</EnablePackageValidation>
+        <PackageIcon>logo.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -47,9 +61,19 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+        <None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
+        <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
+    </ItemGroup>
     
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     </PropertyGroup>
 
 </Project>

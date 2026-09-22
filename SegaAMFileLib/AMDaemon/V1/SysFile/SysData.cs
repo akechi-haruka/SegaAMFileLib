@@ -12,7 +12,7 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
 public class SysData {
     private static readonly ILogger LOG = Log.GetOrCreate("Sysf");
 
-    private const uint FILE_LENGTH = 0x6000;
+    public const uint FILE_LENGTH = 0x6000;
     private const uint OFFSET_CRC = 0;
     private const uint OFFSET_UID = 4;
 
@@ -142,6 +142,25 @@ public class SysData {
         Network1 = GetRecord<DataRecordNetwork>(data);
         Timezone = GetRecord<DataRecordTimezone>(data);
         Wlan = GetRecord<DataRecordWlan>(data);
+    }
+
+    public byte[] Save() {
+        byte[] data = new byte[FILE_LENGTH];
+        UpdateRecord(data, Aime);
+        UpdateRecord(data, AimePay);
+        UpdateRecord(data, Backup);
+        UpdateRecord(data, Credit);
+        UpdateRecord(data, CreditClear);
+        UpdateRecord(data, Dipsw);
+        UpdateRecord(data, Display);
+        UpdateRecord(data, Emoney);
+        UpdateRecord(data, ErrorLog);
+        UpdateRecord(data, Localize);
+        UpdateRecord(data, Network0);
+        UpdateRecord(data, Network1);
+        UpdateRecord(data, Timezone);
+        UpdateRecord(data, Wlan);
+        return data;
     }
 
     /// <summary>

@@ -17,49 +17,56 @@ public unsafe struct DataRecordCredit {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Credit configuration data.
     /// </summary>
     public CreditConfig creditConfig;
+
     private fixed byte padding[472];
 }
 
 /// <summary>
-/// Unknown.
+/// Flag if a chute or switch is shared between all players or not.
 /// </summary>
 public enum CreditShareType : byte {
     /// <summary>
-    /// Unknown.
+    /// Unset. Same as SHARE_TYPE_COMMON.
     /// </summary>
     SHARE_TYPE_DEFAULT = 0x0,
+
     /// <summary>
-    /// Unknown.
+    /// The chute/switch gives credits to all players.
     /// </summary>
     SHARE_TYPE_COMMON = 0x1,
+
     /// <summary>
-    /// Unknown.
+    /// The chute/switch gives credits only to that player.
     /// </summary>
     SHARE_TYPE_INDIVIDUAL = 0x2
 }
 
 /// <summary>
-/// Unknown.
+/// Flag for the coin operation mode.
 /// </summary>
 public enum CreditOperation : byte {
     /// <summary>
-    /// Unknown.
+    /// Unset. Same as OPERATION_COIN.
     /// </summary>
     OPERATION_DEFAULT = 0x0,
+
     /// <summary>
-    /// Unknown.
+    /// Coins are used.
     /// </summary>
     OPERATION_COIN = 0x1,
+
     /// <summary>
-    /// Unknown.
+    /// No coins are used.
     /// </summary>
     OPERATION_FREEPLAY = 0x2
 }
@@ -70,38 +77,47 @@ public enum CreditOperation : byte {
 [StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
 public unsafe struct CreditConfig {
     /// <summary>
-    /// Unknown.
+    /// Whether coin chutes give credits to all players or only the player the coin chute belongs to.
     /// </summary>
     public CreditShareType chuteType;
+
     /// <summary>
-    /// Unknown.
+    /// Whether service buttons give credits to all players or only the player the service button belongs to.
     /// </summary>
     public CreditShareType serviceType;
+
     /// <summary>
-    /// Unknown.
+    /// Whether the game is operated in coin mode or free play mode.
     /// </summary>
     public CreditOperation operation;
+
     /// <summary>
-    /// Unknown.
+    /// Amount of coins needed (per chute) for <see cref="creditRate"/> credits.
     /// </summary>
     public fixed byte coinRate[2];
+
     /// <summary>
-    /// Unknown.
+    /// Amount of coins needed to grant an extra (service) coin.
     /// </summary>
     public byte bonusAdder;
+
     /// <summary>
-    /// Unknown.
+    /// Amount of credits granted if <see cref="coinRate"/> coins are inserted.
     /// </summary>
     public byte creditRate;
+
     /// <summary>
-    /// Unknown.
+    /// Cost of credits per game mode or type.
     /// </summary>
     public fixed byte cost[8];
+
     private fixed byte reserved[1];
+
     /// <summary>
-    /// Unknown.
+    /// Amount of yen consumed for a credit via e-money. (0, 100, 120)
     /// </summary>
     public ushort coinAmount;
+
     private fixed byte padding[14];
 }
 
@@ -114,14 +130,17 @@ public unsafe struct DataRecordNetwork {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Main object holding network configuration data.
     /// </summary>
     public NetworkConfig networkConfig;
+
     private fixed byte padding[376];
 }
 
@@ -134,26 +153,32 @@ public unsafe struct NetworkConfig {
     /// Unknown.
     /// </summary>
     public uint flag;
+
     /// <summary>
     /// The machine's IP address.
     /// </summary>
     public uint ipAddress;
+
     /// <summary>
     /// The machine's subnet mask.
     /// </summary>
     public uint subnetMask;
+
     /// <summary>
     /// The machine's default gateway.
     /// </summary>
     public uint gateway;
+
     /// <summary>
     /// The machine's primary DNS server.
     /// </summary>
     public uint primaryDns;
+
     /// <summary>
     /// The machine's secondary DNS server.
     /// </summary>
     public uint secondaryDns;
+
     fixed byte padding[104];
 }
 
@@ -166,18 +191,22 @@ public unsafe struct DataRecordBackup {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Main object holding credit data.
     /// </summary>
     public CreditData creditData;
+
     /// <summary>
     /// Main object holding bookkeeping data.
     /// </summary>
     public Bookkeeping bookkeeping;
+
     private fixed byte padding[296];
 
     /// <summary>
@@ -229,6 +258,7 @@ public unsafe struct CreditDataPlayer {
     /// The counter of currently available credits.
     /// </summary>
     public byte credit;
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -244,27 +274,34 @@ public unsafe struct Bookkeeping {
     /// Per coin-type coin data (coin 1, coin 2, ...)
     /// </summary>
     public fixed uint coinChute[8];
+
     private fixed byte padding[88];
+
     /// <summary>
     /// Number of coins inserted via e-money.
     /// </summary>
     public uint emoneyCoin;
+
     /// <summary>
     /// Number of credits inserted via e-money.
     /// </summary>
     public uint emoneyCredit;
+
     /// <summary>
     /// Total number of coins inserted (all chutes + e-money)
     /// </summary>
     public uint totalCoin;
+
     /// <summary>
     /// Total number of credits added by coins.
     /// </summary>
     public uint coinCredit;
+
     /// <summary>
     /// Total number of credits added by the service button.
     /// </summary>
     public uint serviceCredit;
+
     /// <summary>
     /// Grand total number of credits added.
     /// </summary>
@@ -280,22 +317,27 @@ public unsafe struct DataRecordErrorLog {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte writePointer;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte logNum;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte activeLastError;
+
     private fixed byte padding[21];
 
     /// <summary>
@@ -314,23 +356,30 @@ public unsafe struct ErrorBody {
     /// Time of error occurrence.
     /// </summary>
     public ulong timestamp;
+
     /// <summary>
     /// The app ID the error occurred in (ex. SDAA)
     /// </summary>
-    public fixed byte gameId[4];
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
+    public String gameId;
+
     /// <summary>
     /// The error number that has occurred. (ex. 8401)
     /// </summary>
     public ushort error;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte appStartCount;
+
     private fixed byte reserved[1];
+
     /// <summary>
     /// The sub error number that has occurred. (usually on some printer-related errors)
     /// </summary>
     public ushort subError;
+
     private fixed byte padding[14];
 }
 
@@ -351,6 +400,7 @@ public unsafe struct DataRecordLocalize {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
@@ -374,18 +424,22 @@ public unsafe struct DataRecordWlan {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint unk;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint unk2;
+
     private fixed byte padding[496];
 }
 
@@ -398,14 +452,17 @@ public unsafe struct DataRecordDisplay {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint unk;
+
     private fixed byte padding[500];
 }
 
@@ -418,14 +475,17 @@ public unsafe struct DataRecordAime {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public UpdateProgress updateProgress;
+
     private fixed byte padding[500];
 }
 
@@ -438,14 +498,17 @@ public unsafe struct UpdateProgress {
     /// Unknown.
     /// </summary>
     public byte comPort;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte unitIndex;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte busy;
+
     private fixed byte padding[1];
 }
 
@@ -458,14 +521,17 @@ public unsafe struct DataRecordEmoney {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// The list of available brands (bitfield?)
     /// </summary>
     public uint availableBrandList;
+
     /// <summary>
     /// The URL for the /terminals endpoint from the initial authentication.
     /// </summary>
@@ -482,34 +548,42 @@ public unsafe struct DataRecordEmoney {
     /// Unknown.
     /// </summary>
     public uint terminalDealNumber;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public int closingNumber;
+
     /// <summary>
     /// The purchase history of this cabinet.
     /// </summary>
     public DealLog dealLog;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public DealLog cashDealLog;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public ReportLog reportLog;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public SendCounterLog sendCounterLog;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint authBrandList;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public CurrentDealInfo currentDealInfo;
+
     private fixed byte padding[48];
 }
 
@@ -522,6 +596,7 @@ public unsafe struct DealLog {
     /// Unknown.
     /// </summary>
     public ushort total;
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -543,6 +618,7 @@ public unsafe struct DealLogBody {
     /// Unknown.
     /// </summary>
     public byte status;
+
     /// <summary>
     /// The brand of card used.
     /// </summary>
@@ -564,26 +640,32 @@ public unsafe struct DealLogBody {
     /// Unknown.
     /// </summary>
     public byte state;
+
     /// <summary>
     /// The transaction timestamp.
     /// </summary>
     public Timestamp time;
+
     /// <summary>
     /// The amount of units purchased.
     /// </summary>
     public uint amount;
+
     /// <summary>
     /// The card's balance before the transaction.
     /// </summary>
     public uint beforeBalance;
+
     /// <summary>
     /// The card's balance after the transaction.
     /// </summary>
     public uint afterBalance;
+
     /// <summary>
     /// The price paid per unit.
     /// </summary>
     public uint price;
+
     /// <summary>
     /// The amount of units purchased.
     /// </summary>
@@ -598,34 +680,42 @@ public enum EMoneyBrand : byte {
     /// Unknown.
     /// </summary>
     BRAND_UNKNOWN = 0x0,
+
     /// <summary>
     /// Nanaco.
     /// </summary>
     BRAND_NANACO = 0x1,
+
     /// <summary>
     /// Rakuten Edy.
     /// </summary>
     BRAND_EDY = 0x2,
+
     /// <summary>
     /// iD
     /// </summary>
     BRAND_ID = 0x3,
+
     /// <summary>
     /// Public transport (Suica, Pasmo, ...)
     /// </summary>
     BRAND_TRANSPORT = 0x4,
+
     /// <summary>
     /// Aeon Waon.
     /// </summary>
     BRAND_WAON = 0x5,
+
     /// <summary>
     /// Konami Paseli.
     /// </summary>
     BRAND_PASELI = 0x6,
+
     /// <summary>
     /// Sapica.
     /// </summary>
     BRAND_SAPICA = 0x7,
+
     /// <summary>
     /// Count of valid e-money brands.
     /// </summary>
@@ -641,6 +731,7 @@ public unsafe struct ReportLog {
     /// Unknown.
     /// </summary>
     public ushort total;
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -662,22 +753,27 @@ public unsafe struct ReportLogBody {
     /// Unknown.
     /// </summary>
     public int status;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public Timestamp timestamp;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public int count;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public int amount;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public int alarmCount;
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -704,18 +800,22 @@ public unsafe struct CurrentDealInfo {
     /// Unknown.
     /// </summary>
     public AdditionalBody additional;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint price;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint quantity;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte state;
+
     private fixed byte padding[3];
 }
 
@@ -760,15 +860,30 @@ public unsafe struct DataRecordDipsw {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// A bitmask of the cabinet's 8 dip switches.
     /// </summary>
     public byte value;
+
     private fixed byte padding[503];
+
+    public bool GetDipSwitchValue(int i) {
+        return (value & (1 << i)) != 0;
+    }
+
+    public void SetDipSwitchValue(int i, bool on) {
+        if (on) {
+            value |= (byte)(1 << i);
+        } else {
+            value &= (byte)~(1 << i);
+        }
+    }
 }
 
 /// <summary>
@@ -780,11 +895,16 @@ public unsafe struct DataRecordCreditClear {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
-    private fixed byte padding[504];
+
+    /// <summary>
+    /// Data layout unknown.
+    /// </summary>
+    public fixed byte unknown[504];
 }
 
 /// <summary>
@@ -796,23 +916,29 @@ public unsafe struct DataRecordAimePay {
     /// The CRC checksum for this record.
     /// </summary>
     public uint crc;
+
     /// <summary>
     /// The UUID for this record.
     /// </summary>
     public uint uuid;
+
     /// <summary>
     /// Activation process information
     /// </summary>
     public ActivationInfo activationInfo;
+
     private fixed byte reserved2[8];
+
     /// <summary>
     /// History of transactions.
     /// </summary>
     public DealLogAimePay dealLog;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public CurrentDealInfoAimePay currentDealInfo;
+
     private fixed byte padding[384];
 }
 
@@ -857,10 +983,12 @@ public unsafe struct DealLogAimePay {
     /// Unknown.
     /// </summary>
     public ushort total;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public ushort addPoint;
+
     private fixed byte padding[4];
 
     /// <summary>
@@ -879,11 +1007,14 @@ public unsafe struct DealLogBodyAimePay {
     /// Unknown.
     /// </summary>
     public byte state;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte status;
+
     private fixed byte reserved[2];
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -899,23 +1030,29 @@ public unsafe struct DealLogBodyAimePay {
     /// Time of the transaction.
     /// </summary>
     public Timestamp time;
+
     /// <summary>
     /// Access code of the card used.
     /// </summary>
     public fixed byte accessCode[10];
+
     /// <summary>
     /// ID of the item purchased (ex. 2000701000017)
     /// </summary>
     public fixed byte itemId[8];
+
     private fixed byte reserved2[6];
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public ulong receiptId;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint quantity;
+
     /// <summary>
     /// Unknown.
     /// </summary>
@@ -931,26 +1068,33 @@ public unsafe struct CurrentDealInfoAimePay {
     /// Unknown.
     /// </summary>
     public fixed byte accessCode[10];
+
     private fixed byte reserved[6];
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public fixed byte itemId[8];
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public Timestamp time;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint amount;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public uint quantity;
+
     /// <summary>
     /// Unknown.
     /// </summary>
     public byte state;
+
     private fixed byte padding[7];
 }

@@ -200,4 +200,34 @@ public abstract class FscryptFile {
             throw new IOException("Extraction to " + targetDirectory + " failed", ex);
         }
     }
+    
+    /// <summary>
+    /// Creates a FscryptFile based on the given <see cref="InstallFileName"/>.
+    /// </summary>
+    /// <param name="input">The input data stream.</param>
+    /// <param name="fileName">The <see cref="InstallFileName"/> for the given input stream.</param>
+    /// <param name="parentChain">The parent <see cref="FscryptFile"/>.</param>
+    /// <param name="noVerify">Whether to skip container verification or not.</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">the given stream is invalid</exception>
+    /// <exception cref="IOException">The container type is unknown; error reading BootId or header data</exception>
+    public static FscryptFile DetectContainerType(Stream input, InstallFileName fileName, FscryptFile parentChain = null, bool noVerify = false) {
+        FscryptFile container;
+
+        if (fileName.Type == InstallFileName.FileType.App || fileName.Type == InstallFileName.FileType.Pack) {
+            container = new AppFile(input, (AppFile)parentChain, !noVerify);
+        } else if (fileName.Type == InstallFileName.FileType.Option) {
+            if (fileName.IsApm()) {
+                LOG.LogInformation("Detected APM .opt file");
+                container = new ApmOptFile(input, (ApmOptFile)parentChain);
+            } else {
+                LOG.LogInformation("Detected regular .opt file");
+                container = new OptFile(input, (OptFile)parentChain, !noVerify);
+            }
+        } else {
+            throw new IOException("Unknown container: " + fileName.Type);
+        }
+
+        return container;
+    }
 }

@@ -11,10 +11,17 @@ public static class Aes128Cbc {
     /// </summary>
     /// <param name="data">The data to decrypt.</param>
     /// <param name="param">The <see cref="EncryptionParameters"/> from the current <see cref="EncryptionEnvironment"/>.</param>
+    /// <exception cref="ArgumentException">if key or iv are either null or empty</exception>
     /// <returns>The decrypted data (same length as input array)</returns>
     public static byte[] DecryptFromEnv(byte[] data, EncryptionParameters param) {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(param);
+        if (param.Key == null || param.Key.Length == 0) {
+            throw new ArgumentException("Key is unset");
+        }
+        if (param.Key == null || param.Key.Length == 0) {
+            throw new ArgumentException("IV is unset");
+        }
         return Decrypt(data, param.Key, param.Iv);
     }
 
