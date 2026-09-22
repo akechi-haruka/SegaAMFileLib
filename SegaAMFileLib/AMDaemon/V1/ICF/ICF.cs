@@ -172,8 +172,9 @@ public class InstallationConfigurationFile {
     /// Creates a new record based on the given <see cref="InstallFileName"/> and updates <see cref="IcfHeaderRecord.entryCount"/> and <see cref="IcfHeaderRecord.dataSize"/>.
     /// </summary>
     /// <param name="fileName">The file name to use.</param>
+    /// <param name="required">The required version for this entry. May be null to derive it from the filename.</param>
     /// <exception cref="ArgumentException">If the InstallFileName has an unknown type</exception>
-    public void AddRecord(InstallFileName fileName) {
+    public void AddRecord(InstallFileName fileName, Version? required = null) {
         IcfType type;
         if (fileName.Type == InstallFileName.FileType.App) {
             type = IcfType.App;
@@ -188,7 +189,7 @@ public class InstallationConfigurationFile {
         IcfEntryRecord entry = new IcfEntryRecord() {
             typeFlags = type,
             entryFlags = EntryFlags.Enabled1 | EntryFlags.Enabled2,
-            requiredVersion = fileName.RequiredVersion != null ? new Version(fileName.RequiredVersion) : Version.Empty,
+            requiredVersion = required ?? (fileName.RequiredVersion != null ? new Version(fileName.RequiredVersion) : Version.Empty),
             version = fileName.VersionNumber != null ? new Version(fileName.VersionNumber) : Version.Empty,
             timestamp = new Timestamp(fileName.Date),
             sequenceId = fileName.Sequence
@@ -221,6 +222,8 @@ public class InstallationConfigurationFile {
     /// </summary>
     /// <returns>A byte array of the serialized data (header + entries) of this ICF file.</returns>
     public byte[] Save() {
+        UpdateHeaderAfterModification();
+
         int headerLen = Marshal.SizeOf<IcfHeaderRecord>();
         int entryLen = Marshal.SizeOf<IcfEntryRecord>();
         long fullLen = headerLen + Header.GetEntryCount() * entryLen;
@@ -247,6 +250,16 @@ public class InstallationConfigurationFile {
         Array.Copy(headerBytes, output, headerBytes.Length);
 
         output = SegaCrc32.WriteCrcIntoFirst4Bytes(output);
+
+        try {
+            // ReSharper disable once ObjectCreationAsStatement
+#pragma warning disable CA1806
+            new InstallationConfigurationFile(output);
+#pragma warning restore CA1806
+        } catch (Exception ex) {
+            LOG.LogError(ex, "ICF write verification failed!");
+            throw;
+        }
 
         return output;
     }
