@@ -14,7 +14,7 @@ public class InstallFileName {
     /// <summary>
     /// The type of the container (app/opt/pack).
     /// </summary>
-    public FileType Type { get; internal set; }
+    public FileType Type { get; internal set; } = FileType.Unknown;
 
     /// <summary>
     /// The 4-letter game ID.
@@ -51,6 +51,8 @@ public class InstallFileName {
     /// </summary>
     public string RequiredOption { get; set; }
 
+    private String extension;
+
     /// <summary>
     /// Parses a file name.
     /// </summary>
@@ -73,6 +75,9 @@ public class InstallFileName {
             f.Type = FileType.App;
         } else if (filename.EndsWith(".opt")) {
             f.Type = FileType.Option;
+        } else {
+            f.Type = FileType.Unknown;
+            f.extension = Path.GetExtension(filename);
         }
 
         String[] fparts = Path.GetFileNameWithoutExtension(filename).Split("_");
@@ -130,7 +135,7 @@ public class InstallFileName {
             if (apmOpt) {
                 f.RequiredOption = version2;
             } else {
-                if (f.Type != FileType.App) {
+                if (f.Type != FileType.App && f.Type != FileType.Unknown) {
                     throw new ArgumentException("Only app files can have a required version:" + filename);
                 }
 
@@ -289,6 +294,7 @@ public class InstallFileName {
             FileType.App => ".app",
             FileType.Option => ".opt",
             FileType.Pack => ".pack",
+            FileType.Unknown => extension,
             _ => throw new ArgumentException("Invalid container type: " + Type)
         };
     }
@@ -357,6 +363,11 @@ public class InstallFileName {
         /// <summary>
         /// The maximum possible value of this enum.
         /// </summary>
-        Max = 0x2
+        Max = 0x2,
+
+        /// <summary>
+        /// A file of unknown type. The extension did not match anything known.
+        /// </summary>
+        Unknown = 0xFF
     }
 }
