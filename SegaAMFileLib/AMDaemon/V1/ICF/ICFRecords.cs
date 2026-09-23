@@ -222,6 +222,7 @@ public unsafe struct IcfEntryRecord {
                timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
                "_" +
                sequenceId +
+               (sequenceId > 0 ? $"_{requiredVersion.major:D}.{requiredVersion.minor:D2}.{requiredVersion.build:D2}" : "") +
                typeFlags.GetExtension();
     }
 
