@@ -135,7 +135,7 @@ public class InstallFileName {
             if (apmOpt) {
                 f.RequiredOption = version2;
             } else {
-                if (f.Type != FileType.App) {
+                if (f.Type != FileType.App && f.Type != FileType.Unknown) {
                     throw new ArgumentException("Only app files can have a required version:" + filename);
                 }
 
