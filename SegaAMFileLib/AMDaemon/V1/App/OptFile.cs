@@ -27,7 +27,7 @@ public class OptFile : FscryptFile {
     /// <param name="apmParent">The parent container in case this container is a patch of another container and for APMv3. This is only used for APM* functions, and should be null otherwise.</param>
     /// <param name="verify">Whether to verify the container or not</param>
     /// <exception cref="ArgumentNullException">if data is null</exception>
-    /// <exception cref="ArgumentException">there given stream is invalid</exception>
+    /// <exception cref="ArgumentException">the given stream is invalid</exception>
     /// <exception cref="IOException">error reading BootId or header data</exception>
     public OptFile(Stream data, OptFile apmParent = null, bool verify = true) : base(data, verify) {
         ApmParent = apmParent;
