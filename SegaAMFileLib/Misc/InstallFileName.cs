@@ -51,6 +51,16 @@ public class InstallFileName {
     /// </summary>
     public string RequiredOption { get; set; }
 
+    /// <summary>
+    /// The starting block on partial .app files (which come from multi-discs). 0 otherwise.
+    /// </summary>
+    public long RangeStart { get; set; }
+
+    /// <summary>
+    /// The number of blocks on partial .app files (which come from multi-discs). 0 otherwise.
+    /// </summary>
+    public long RangeLength { get; set; }
+
     private String extension;
 
     /// <summary>
@@ -131,19 +141,27 @@ public class InstallFileName {
         f.Sequence = sequence;
 
         if (fparts.Length > 4) {
-            String version2 = fparts[4];
-            if (apmOpt) {
-                f.RequiredOption = version2;
+            if (f.Sequence == 0) {
+                // partial app file
+
+                if (fparts.Length != 6) {
+                    throw new ArgumentException("Partial app file missing range");
+                }
             } else {
-                if (f.Type != FileType.App && f.Type != FileType.Unknown) {
-                    throw new ArgumentException("Only app files can have a required version:" + filename);
-                }
+                String version2 = fparts[4];
+                if (apmOpt) {
+                    f.RequiredOption = version2;
+                } else {
+                    if (f.Type != FileType.App && f.Type != FileType.Unknown) {
+                        throw new ArgumentException("Only app files can have a required version:" + filename);
+                    }
 
-                if (!Version.TryParse(version2, out Version parsedVersion)) {
-                    throw new ArgumentException("Invalid version: " + version2);
-                }
+                    if (!Version.TryParse(version2, out Version parsedVersion)) {
+                        throw new ArgumentException("Invalid version: " + version2);
+                    }
 
-                f.RequiredVersion = parsedVersion;
+                    f.RequiredVersion = parsedVersion;
+                }
             }
         }
 
@@ -319,6 +337,7 @@ public class InstallFileName {
                "_" +
                Sequence +
                (RequiredVersion != null ? "_" + $"{RequiredVersion.Major:D}.{RequiredVersion.Minor:D2}.{RequiredVersion.Build:D2}" : "") +
+               (RangeLength > 0 ? $"_{RangeStart}_{RangeLength}" : "") +
                (withExtension ? GetContainerFileExtension() : "");
     }
 
@@ -336,6 +355,14 @@ public class InstallFileName {
     /// <returns>a string representation of this object for the purpose of being used as a file system label.</returns>
     public string GetFileSystemLabel() {
         return GameId + "_" + VersionNumber + "_" + Sequence;
+    }
+
+    /// <summary>
+    /// Returns if this filename denotes a partial .app file (from an installation DVD).
+    /// </summary>
+    /// <returns>true if this filename denotes a partial .app file.</returns>
+    public bool IsPartial() {
+        return RangeLength > 0;
     }
 
     private InstallFileName() {
