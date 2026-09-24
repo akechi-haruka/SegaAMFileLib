@@ -147,6 +147,9 @@ public class InstallFileName {
                 if (fparts.Length != 6) {
                     throw new ArgumentException("Partial app file missing range");
                 }
+
+                f.RangeStart = Int32.Parse(fparts[4]);
+                f.RangeLength = Int32.Parse(fparts[5]);
             } else {
                 String version2 = fparts[4];
                 if (apmOpt) {
