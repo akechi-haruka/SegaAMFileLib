@@ -873,15 +873,25 @@ public unsafe struct DataRecordDipsw {
 
     private fixed byte padding[503];
 
-    public bool GetDipSwitchValue(int i) {
-        return (value & (1 << i)) != 0;
+    /// <summary>
+    /// Convenience getter for a specific dipswitch bit.
+    /// </summary>
+    /// <param name="bit">The bit to get.</param>
+    /// <returns>true if this dipswitch is set.</returns>
+    public bool GetDipSwitchValue(int bit) {
+        return (value & (1 << bit)) != 0;
     }
 
-    public void SetDipSwitchValue(int i, bool on) {
+    /// <summary>
+    /// Convenience setter for a specific dipswitch bit.
+    /// </summary>
+    /// <param name="bit">The bit to set.</param>
+    /// <param name="on">Whether to turn this switch on or not.</param>
+    public void SetDipSwitchValue(int bit, bool on) {
         if (on) {
-            value |= (byte)(1 << i);
+            value |= (byte)(1 << bit);
         } else {
-            value &= (byte)~(1 << i);
+            value &= (byte)~(1 << bit);
         }
     }
 }

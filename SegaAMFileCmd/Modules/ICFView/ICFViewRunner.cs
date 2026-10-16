@@ -59,7 +59,12 @@ namespace Haruka.Arcade.SegaAMFileCmd.Modules.ICFView {
             Program.CmdLog.LogInformation("- Record Type: {v}", value.typeFlags);
             Program.CmdLog.LogInformation("- Flags: 0x{v}", value.entryFlags.ToString("X"));
             Program.CmdLog.LogInformation("- Required Version: {v}", value.requiredVersion);
-            Program.CmdLog.LogInformation("- Version: {v}", value.version);
+            if (value.typeFlags == IcfType.Option) {
+                Program.CmdLog.LogInformation("- Option Name: {v}", value.GetOptionId());
+            } else {
+                Program.CmdLog.LogInformation("- Version: {v}", value.version);
+            }
+
             Program.CmdLog.LogInformation("- Date: {d}", timeString);
             Program.CmdLog.LogInformation("- AMFS file name: {f}", value.GetFileName(header));
 

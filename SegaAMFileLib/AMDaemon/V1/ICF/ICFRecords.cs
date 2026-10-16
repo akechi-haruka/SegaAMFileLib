@@ -196,7 +196,7 @@ public unsafe struct IcfEntryRecord {
         if (typeFlags == IcfType.System) {
             return header.GetPlatformId(false) +
                    "_" +
-                   $"{version.major:D4}.{version.minor:D2}.{version.build:D2}" +
+                   (typeFlags == IcfType.Option ? GetOptionId() : $"{version.major:D4}.{version.minor:D2}.{version.build:D2}") +
                    "_" +
                    timestamp.ToDateTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) +
                    "_" +

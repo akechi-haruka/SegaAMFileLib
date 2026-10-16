@@ -99,7 +99,7 @@ public unsafe struct Timestamp {
     }
 
     /// <summary>
-    /// Creates a Timestamp from a FileTime.
+    /// Creates a Timestamp from a FileTime. (Number of 100-nanosecond intervals since January 1, 1601 (UTC)).
     /// </summary>
     /// <param name="timestamp">The timestamp to use.</param>
     /// <returns>A Timestamp with the given value.</returns>
@@ -107,6 +107,10 @@ public unsafe struct Timestamp {
         return new Timestamp(DateTime.FromFileTimeUtc((long)timestamp));
     }
 
+    /// <summary>
+    /// Converts this Timestamp to a FileTime. (Number of 100-nanosecond intervals since January 1, 1601 (UTC)).
+    /// </summary>
+    /// <returns>a Windows FileTime.</returns>
     public ulong ToFileTime() {
         return (ulong)ToDateTime().ToFileTimeUtc();
     }
