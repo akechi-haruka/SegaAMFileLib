@@ -12,7 +12,11 @@ namespace Haruka.Arcade.SegaAMFileLib.AMDaemon.V1.SysFile;
 public class SysData {
     private static readonly ILogger LOG = Log.GetOrCreate("Sysf");
 
+    /// <summary>
+    /// The size of a sysfile in bytes.
+    /// </summary>
     public const uint FILE_LENGTH = 0x6000;
+
     private const uint OFFSET_CRC = 0;
     private const uint OFFSET_UID = 4;
 
@@ -144,6 +148,10 @@ public class SysData {
         Wlan = GetRecord<DataRecordWlan>(data);
     }
 
+    /// <summary>
+    /// Saves this sysfile to a byte array (unencrypted).
+    /// </summary>
+    /// <returns>A <see cref="FILE_LENGTH"/> long byte array containing serialized data for this sysfile. (unencrypted)</returns>
     public byte[] Save() {
         byte[] data = new byte[FILE_LENGTH];
         UpdateRecord(data, Aime);
